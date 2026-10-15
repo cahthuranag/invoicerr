@@ -60,9 +60,33 @@ the existing ones:
   shell parses the line, so a branch name or a tag containing shell syntax would run as code. The
   rule applies to every expression, not only attacker-controlled ones, so a reviewer never has to
   decide which values are safe.
+- **The backend boots from a finished build.** A job that needs a running backend runs
+  `npm run build`, then starts it with `npm run start:test:built` (`node dist/src/main` with
+  `.env.test`). Never `npm run start:test` in CI: `nest start --watch` copies the `data/*.json`
+  catalogues into `dist/` asynchronously and can start the app before they land, which boots it with
+  an empty country catalogue and fails specs far from the cause. The country loader refuses an empty
+  catalogue directory, so if the files are ever missing the backend exits at boot instead of
+  reseeding every country away.
 - **CI Postgres runs with trust auth.** Service containers set `POSTGRES_HOST_AUTH_METHOD: trust`
   and connection strings carry no password. The database is reachable only from the runner and is
   thrown away with the job.
+
+## External services in the required e2e lane
+
+The `cypress-run` shards gate every merge, so a spec there never waits on a public server it does not
+control: a slow or unavailable sandbox would block the merge queue for a reason unrelated to the
+change under test. When the backend calls an outside service, the spec points it at a local fake
+started from `e2e/cypress.config.ts` instead:
+
+- a URL stored on a row (PDP, SdI, the Portuguese AT webservice) is written by the spec itself,
+  toward a fake on an ephemeral port;
+- a URL the backend reads from its environment at boot uses a fixed port and a variable set for the
+  e2e stack: `ADDRESS_AUTOCOMPLETE_URL` (Photon, port 19876, set in `cypress.yml`) and
+  `KSEF_TEST_API_URL` (KSeF test API, port 19877, set in `backend/.env.test`).
+
+The real round trip with each authority belongs in a `*.live.spec.ts` run by `compliance-live.yml`
+(see [Live Testing](./live-testing.md)). The Chorus Pro send test in `31-national-channels.cy.ts`
+still reaches the public PISTE sandbox and is the remaining exception.
 
 ## Release notes and the Discord announcement
 
