@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { Input } from "@/components/ui/input"
 import {
   type CredentialFieldDescriptor,
@@ -451,7 +452,7 @@ function ChannelBanner({
 
   // Owner review of #527: ONE plain sentence in the reader's own language, normal warning weight
   // (never `variant="destructive"` - this is not an error the user caused) - the full statute quote
-  // moves into `ChannelBannerSource`'s own collapsible, never rendered open by default.
+  // moves behind `ChannelBannerSource`'s `?`.
   if (banner.tone === "mandated") {
     return (
       <Alert variant="warning" data-cy="channels-banner">
@@ -536,14 +537,19 @@ function DeclarationsSection({ obligations, t }: { obligations: ReportingObligat
                 {t("settings.channels.status.declarative", "Declaration (not a delivery channel)")}
               </Badge>
             }
-            title={t(
-              `settings.channels.declarations.${obligation.providerId}.label`,
-              DECLARATION_LABEL_DEFAULTS[obligation.providerId] ?? obligation.providerId.toUpperCase(),
-            )}
-            meta={
-              obligation.provenance.kind === "legal"
-                ? obligation.provenance.sourceText
-                : obligation.provenance.resolutionNote
+            title={
+              <ProseHelp
+                title={t(
+                  `settings.channels.declarations.${obligation.providerId}.label`,
+                  DECLARATION_LABEL_DEFAULTS[obligation.providerId] ?? obligation.providerId.toUpperCase(),
+                )}
+                dataCy={`declaration-${obligation.providerId}-source`}
+                className="text-sm font-medium text-foreground"
+              >
+                {obligation.provenance.kind === "legal"
+                  ? obligation.provenance.sourceText
+                  : obligation.provenance.resolutionNote}
+              </ProseHelp>
             }
           />
         ))}
@@ -617,12 +623,16 @@ function ChannelDetail({
                       },
                     )}
               </p>
-              <p>
+              <ProseHelp
+                title={t("settings.channels.outside.bodyTitle", "Invoicing a foreign buyer")}
+                dataCy={`channel-detail-${channel.id}-foreign-buyer`}
+                className="text-sm text-current"
+              >
                 {t(
                   "settings.channels.outside.body",
                   "A national e-invoicing mandate binds domestic operations only. When you invoice a foreign buyer, the invoice may travel by any channel you and the buyer agree on (email, PDF, Peppol...) - what changes is which authority you must report the transaction to under your own country's rules, never a foreign platform.",
                 )}
-              </p>
+              </ProseHelp>
             </AlertDescription>
           </Alert>
         )}
@@ -647,12 +657,16 @@ function ChannelDetail({
                   { channel: legalChannelLabel(t, channel.id) },
                 )}
               </p>
-              <p>
+              <ProseHelp
+                title={t("settings.channels.outside.bodyTitle", "Invoicing a foreign buyer")}
+                dataCy={`channel-detail-${channel.id}-foreign-buyer`}
+                className="text-sm text-current"
+              >
                 {t(
                   "settings.channels.outside.body",
                   "A national e-invoicing mandate binds domestic operations only. When you invoice a foreign buyer, the invoice may travel by any channel you and the buyer agree on (email, PDF, Peppol...) - what changes is which authority you must report the transaction to under your own country's rules, never a foreign platform.",
                 )}
-              </p>
+              </ProseHelp>
             </AlertDescription>
           </Alert>
         )}

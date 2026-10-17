@@ -2,6 +2,8 @@
 
 import type { TFunction } from "i18next"
 
+import { ProseHelp } from "@/components/ui/prose-help"
+
 /** Mirrors the backend's `ChannelProvenance` (`transports/channel-policy/schema.ts`) - a legal fact
  *  quotes its exact source text, an unverified one carries a resolution note instead. Shared between
  *  every screen that renders a channel obligation banner, so there is one definition of what
@@ -58,22 +60,20 @@ export function formatMandateDate(language: string, isoDate?: string): string {
   }
 }
 
-/** The full legal quote behind a banner, revealed on demand rather than dumped into the page by
- *  default - owner review of #527: a full statute article in the page's own language mismatch (the
- *  source is quoted in the COUNTRY's language, the page renders in the READER's) read as a wall of
- *  red text, not as the "one plain sentence" a channel banner is meant to be. `<details>` needs no
- *  state and no extra dependency, and degrades to a plain, readable block for anyone printing the
- *  page. Shared by every channel banner (`channels.settings.tsx`'s `ChannelBanner`,
- *  `ChannelConnectPrompt`) so this discipline lives in one place, not one copy per caller. */
+// The statute quote (or, for an unverified fact, its resolution note) behind a `?`, never in the banner itself.
 export function ChannelBannerSource({ provenance, t }: { provenance?: ChannelProvenance; t: TFunction }) {
-  const quote = provenance?.kind === "legal" ? provenance.sourceText : provenance?.resolutionNote
-  if (!quote) return null
+  if (!provenance) return null
   return (
-    <details className="mt-1" data-cy="channels-banner-source">
-      <summary className="cursor-pointer text-sm underline-offset-2 hover:underline">
-        {t("settings.channels.banner.readSource", "Read the source")}
-      </summary>
-      <blockquote className="mt-1 border-s-2 ps-3 text-sm italic">{quote}</blockquote>
-    </details>
+    <ProseHelp
+      title={
+        provenance.kind === "legal"
+          ? t("settings.channels.banner.source", "Legal source")
+          : t("settings.channels.banner.unverifiedSource", "Not yet verified")
+      }
+      dataCy="channels-banner-source"
+      className="mt-1 text-sm text-current"
+    >
+      {provenance.kind === "legal" ? provenance.sourceText : provenance.resolutionNote}
+    </ProseHelp>
   )
 }

@@ -1,18 +1,18 @@
 // biome-ignore-all lint/security/noDangerouslySetInnerHtml: the html preview is sanitized into safeHtml
 import DOMPurify from "dompurify"
-import { ChevronDown, ChevronUp, FileText, Mail, RotateCcw, TriangleAlert } from "lucide-react"
+import { ChevronDown, ChevronUp, FileText, Mail, RotateCcw } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
 import { type ReactNode, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FieldLabel, fieldHelpId } from "@/components/ui/field-help"
 import { Label } from "@/components/ui/label"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { Separator } from "@/components/ui/separator"
 import { useCompanies } from "@/hooks/queries"
@@ -225,26 +225,20 @@ function PlaceholderHints({ variables }: { variables: Record<string, string> }) 
   )
 }
 
-/** The server's placeholder warnings, shown verbatim: they are prose it composed about the template
- *  just saved ("Unknown email template placeholder …"), not a condition this screen can re-derive. A
- *  warning never means the save failed — an unknown placeholder is reported, never refused. */
+// A saved template with unknown placeholders: the status stays visible, the server's details behind its `?`.
 function PlaceholderWarnings({ warnings }: { warnings: string[] }) {
   const { t } = useTranslation()
 
   if (warnings.length === 0) return null
 
   return (
-    <Alert data-cy="email-template-warnings">
-      <TriangleAlert />
-      <AlertTitle>{t("settings.emailTemplates.warningsTitle")}</AlertTitle>
-      <AlertDescription>
-        {warnings.map((warning) => (
-          <p key={warning} data-cy="email-template-warning-item">
-            {warning}
-          </p>
-        ))}
-      </AlertDescription>
-    </Alert>
+    <ProseHelp
+      tone="warning"
+      title={t("settings.emailTemplates.warningsTitle")}
+      dataCy="email-template-warnings"
+    >
+      {warnings}
+    </ProseHelp>
   )
 }
 

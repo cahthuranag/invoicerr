@@ -161,8 +161,8 @@ describe('buildExpenseDashboardWidgetsWithConsolidation', () => {
     expect(widgets.find((w) => w.id === 'expense:this-month:consolidated')).toBeUndefined();
     const eur = widgets.find((w) => w.id === 'expense:this-month:EUR');
     const jpy = widgets.find((w) => w.id === 'expense:this-month:JPY');
-    expect(eur?.warnings).toEqual(['No JPY→EUR rate is set — consolidated total omitted.']);
-    expect(jpy?.warnings).toEqual(['No JPY→EUR rate is set — consolidated total omitted.']);
+    expect(eur?.warnings).toEqual(['No JPY→EUR rate is set, so the consolidated total is omitted.']);
+    expect(jpy?.warnings).toEqual(['No JPY→EUR rate is set, so the consolidated total is omitted.']);
     // Values themselves are completely unaffected by the missing rate.
     expect(eur?.value).toBe(100);
     expect(jpy?.value).toBe(1000);

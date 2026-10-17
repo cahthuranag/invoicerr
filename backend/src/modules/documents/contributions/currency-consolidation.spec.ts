@@ -79,7 +79,7 @@ describe('consolidateByCurrency', () => {
     );
 
     expect(outcome.consolidated).toBeNull();
-    expect(outcome.warnings).toEqual(['No JPY→EUR rate is set — consolidated total omitted.']);
+    expect(outcome.warnings).toEqual(['No JPY→EUR rate is set, so the consolidated total is omitted.']);
   });
 
   it('several missing currencies are each named, not just the first', () => {
@@ -95,8 +95,8 @@ describe('consolidateByCurrency', () => {
 
     expect(outcome.consolidated).toBeNull();
     expect(outcome.warnings).toEqual([
-      'No JPY→EUR rate is set — consolidated total omitted.',
-      'No GBP→EUR rate is set — consolidated total omitted.',
+      'No JPY→EUR rate is set, so the consolidated total is omitted.',
+      'No GBP→EUR rate is set, so the consolidated total is omitted.',
     ]);
   });
 
@@ -109,7 +109,7 @@ describe('consolidateByCurrency', () => {
     );
 
     expect(outcome.consolidated).toBeNull();
-    expect(outcome.warnings).toEqual(['No USD→EUR rate is set — consolidated total omitted.']);
+    expect(outcome.warnings).toEqual(['No USD→EUR rate is set, so the consolidated total is omitted.']);
   });
 
   it('a future-dated rate is not eligible — treated the same as no rate at all', () => {
@@ -121,7 +121,7 @@ describe('consolidateByCurrency', () => {
     );
 
     expect(outcome.consolidated).toBeNull();
-    expect(outcome.warnings).toEqual(['No USD→EUR rate is set — consolidated total omitted.']);
+    expect(outcome.warnings).toEqual(['No USD→EUR rate is set, so the consolidated total is omitted.']);
   });
 });
 

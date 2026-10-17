@@ -1529,8 +1529,10 @@
     }
   },
   "widgets": {
+    "loading": "Loading…",
     "emptyTitle": "Nothing to show yet",
     "emptyDescription": "This will fill in once your company has some documents to report on.",
+    "notesTitle": "About this list",
     "unsupportedKind": "Widget \"{{label}}\" has kind \"{{kind}}\", which no renderer is registered for.",
     "basis": {
       "inclVat": "incl. VAT",
@@ -1637,6 +1639,14 @@
         "deleteSuccess": "Article deleted",
         "deleteError": "Failed to delete article",
         "validationError": "Please fix the highlighted fields before saving"
+      },
+      "errors": {
+        "nameRequired": "Name is required",
+        "priceRequired": "Price is required",
+        "priceMin": "Price must be >= 0",
+        "vatRateRequired": "VAT rate is required",
+        "vatRateMin": "VAT must be >= 0",
+        "nonNegative": "Must be >= 0"
       }
     },
     "delete": {
@@ -1693,6 +1703,11 @@
         "addError": "Failed to create project",
         "updateSuccess": "Project updated",
         "updateError": "Failed to update project"
+      },
+      "errors": {
+        "clientRequired": "Client is required",
+        "nameRequired": "Name is required",
+        "hourlyRateMin": "Hourly rate must be 0 or more"
       }
     },
     "entries": {
@@ -1756,6 +1771,11 @@
         "updateError": "Failed to update time entry",
         "deleteSuccess": "Time entry deleted",
         "deleteError": "Failed to delete time entry"
+      },
+      "errors": {
+        "dateRequired": "Date is required",
+        "durationPositive": "Duration must be greater than 0",
+        "hourlyRateMin": "Hourly rate must be 0 or more"
       }
     },
     "generateInvoice": {
@@ -1983,6 +2003,7 @@
     "cashedRevenue": {
       "title": "Cashed revenue",
       "description": "What was actually received against your sent invoices, per month or quarter - for a company that declares revenue on a cashed basis.",
+      "disclaimerTitle": "An aid, not your official declaration",
       "disclaimerFallback": "This is an aid to help prepare a revenue declaration, not the official declaration itself. Verify every figure against your own accounting records and your local tax authority's rules before filing.",
       "loading": "Loading…",
       "empty": "No cashed revenue in this range yet.",
@@ -2140,7 +2161,7 @@
       },
       "approval": {
         "title": "Approval workflow",
-        "description": "Require an ADMIN or OWNER to send a document above a given amount. A member can still send anything at or under it; an admin or owner sending it above the limit IS the approval — there is no separate approval step to complete."
+        "description": "Require an ADMIN or OWNER to send a document above a given amount. A member can still send anything at or under it; an admin or owner sending it above the limit IS the approval; there is no separate approval step to complete."
       },
       "currency": {
         "title": "Multi-currency",
@@ -2376,7 +2397,7 @@
           "patternMismatch": "{{label}} format is invalid",
           "onFile": {
             "label": "Other identifiers on file",
-            "description": "Saved on this company before, but not requested by the currently selected country. Kept as-is rather than removed automatically — remove one only if you're sure it's no longer needed.",
+            "description": "Saved on this company before, but not requested by the currently selected country. Kept as-is rather than removed automatically: remove one only if you're sure it's no longer needed.",
             "remove": "Remove"
           }
         },
@@ -2458,7 +2479,7 @@
       },
       "reconciliation": {
         "title": "Reconciliation",
-        "description": "The leeway (as a percent) allowed between a purchase order, its goods receipt(s), and the received invoice before a line is flagged \"to review\" in the 3-way-match panel. 0 means no leeway at all — any difference is flagged."
+        "description": "The leeway (as a percent) allowed between a purchase order, its goods receipt(s), and the received invoice before a line is flagged \"to review\" in the 3-way-match panel. 0 means no leeway at all: any difference is flagged."
       }
     },
     "identifiers": {
@@ -2641,7 +2662,7 @@
       },
       "saveButton": "Save Template",
       "resetButton": "Reset to default",
-      "warningsTitle": "Unknown placeholders",
+      "warningsTitle": "Some placeholders are unknown",
       "readOnlyNotice": "Only an owner or an admin can change email templates",
       "messages": {
         "saveSuccess": "{{name}} template saved successfully",
@@ -2787,7 +2808,8 @@
         "mandatedTitle": "Mandatory transmission channel",
         "noneBody": "Any lawful transport, including email, may be used to send your invoices.",
         "noneTitle": "No transmission channel is imposed on {{country}}",
-        "readSource": "Read the source",
+        "source": "Legal source",
+        "unverifiedSource": "Not yet verified",
         "suggestedBody": "{{country}} recommends {{channel}} for your invoices. Not yet a legal obligation - connecting it is optional.",
         "suggestedTitle": "Recommended transmission channel"
       },
@@ -2895,6 +2917,7 @@
       "outside": {
         "automatic": "This channel is {{countries}}'s own automatic government portal, not part of your own invoicing country's rules.",
         "body": "A national e-invoicing mandate binds domestic operations only. When you invoice a foreign buyer, the invoice may travel by any channel you and the buyer agree on (email, PDF, Peppol...); what changes is which authority you must report the transaction to under your own country's rules, never a foreign platform.",
+        "bodyTitle": "Invoicing a foreign buyer",
         "elsewhere": "This channel is required or recommended in {{countries}}, not in your own invoicing country.",
         "title": "Outside your invoicing country"
       },
@@ -2973,7 +2996,7 @@
       "actions": {
         "deactivate": "Deactivate"
       },
-      "description": "Upload a PKCS#12 (.pfx / .p12) signing certificate to have this company's document PDFs signed PAdES. This is an optional capability — nothing in this product requires a signed document.",
+      "description": "Upload a PKCS#12 (.pfx / .p12) signing certificate to have this company's document PDFs signed PAdES. This is an optional capability: nothing in this product requires a signed document.",
       "emptyState": "No signing certificate configured — documents are served and sent unsigned.",
       "expires": "Expires",
       "serial": "Serial",
@@ -3308,7 +3331,7 @@
       "currencyNotice": "Prices are shown in USD. If your card is billed in another currency, your bank converts the charge at its own exchange rate.",
       "vatNotice": "Prices exclude VAT; Polar, the merchant of record, adds the VAT applicable to your company at checkout.",
       "refundNotice": {
-        "prefix": "Subscribing starts a subscription that renews automatically until you cancel it, with no refund or proration for the unused portion of a cancelled period. See our",
+        "prefix": "Polar sells this subscription as our reseller. It renews automatically until you cancel it, and cancelling takes effect at the end of the period already paid. Refunds are handled by Polar. See our",
         "linkLabel": "Refund and Cancellation Policy"
       },
       "currentPlan": "Current plan",
@@ -3786,7 +3809,8 @@
       "noResults": "No currencies found"
     },
     "date-picker": {
-      "today": "Today"
+      "today": "Today",
+      "placeholder": "Pick a date"
     },
     "country-select": {
       "placeholder": "Select a country",
@@ -4401,7 +4425,8 @@
             "label": "Client"
           },
           "origin": {
-            "label": "Origin document"
+            "label": "Origin document",
+            "helpText": "The quote or invoice this invoice was raised from, if any."
           },
           "issueDate": {
             "label": "Date"
@@ -4416,7 +4441,8 @@
             "label": "Notes"
           },
           "clientReference": {
-            "label": "Client reference / PO number"
+            "label": "Client reference / PO number",
+            "helpText": "The buyer's own reference for this document: their purchase order or file number."
           },
           "lines": {
             "label": "Lines",
@@ -4444,21 +4470,32 @@
                   "KMT": "Kilometre",
                   "SET": "Set",
                   "BX": "Box"
-                }
+                },
+                "helpText": "How the quantity is counted. Pick a unit or type your own."
               },
               "unitPrice": {
                 "label": "Unit price"
               },
               "vatRate": {
-                "label": "VAT rate"
+                "label": "VAT rate",
+                "helpText": "The VAT rate that applies to this line."
               },
               "discountPercent": {
-                "label": "Discount %"
+                "label": "Discount %",
+                "helpText": "Percentage discount applied to this line, before VAT."
               },
               "date": {
-                "label": "Work date"
+                "label": "Work date",
+                "helpText": "When the work on this line was done, if it differs from the document date."
+              },
+              "articleId": {
+                "label": "Article"
               }
             }
+          },
+          "correctsInvoiceId": {
+            "helpText": "The invoice this one corrects, if any. Leave empty for an ordinary invoice.",
+            "label": "Corrects invoice"
           }
         },
         "actions": {
@@ -4519,6 +4556,21 @@
           },
           "share-link": {
             "label": "Share link"
+          },
+          "delete": {
+            "label": "Delete"
+          },
+          "duplicate": {
+            "label": "Duplicate",
+            "params": {
+              "occurrenceDate": {
+                "helpText": "Set by a scheduled recurrence to recompute this document's dates on the duplicate. Left empty for an ordinary, manual duplicate.",
+                "label": "Occurrence date"
+              }
+            }
+          },
+          "validate": {
+            "label": "Validate"
           }
         },
         "statuses": {
@@ -4526,7 +4578,9 @@
           "sending": "Sending",
           "sent": "Sent",
           "send_failed": "Send failed",
-          "cancelled": "Cancelled"
+          "cancelled": "Cancelled",
+          "imported": "Imported",
+          "validated": "Validated"
         },
         "widgets": {
           "invoice:pending": {
@@ -4565,7 +4619,8 @@
             "label": "Notes"
           },
           "clientReference": {
-            "label": "Client reference / PO number"
+            "label": "Client reference / PO number",
+            "helpText": "The buyer's own reference for this document: their purchase order or file number."
           },
           "lines": {
             "label": "Lines",
@@ -4593,19 +4648,30 @@
                   "KMT": "Kilometre",
                   "SET": "Set",
                   "BX": "Box"
-                }
+                },
+                "helpText": "How the quantity is counted. Pick a unit or type your own."
               },
               "unitPrice": {
                 "label": "Unit price"
               },
               "vatRate": {
-                "label": "VAT rate"
+                "label": "VAT rate",
+                "helpText": "The VAT rate that applies to this line."
               },
               "discountPercent": {
-                "label": "Discount %"
+                "label": "Discount %",
+                "helpText": "Percentage discount applied to this line, before VAT."
               },
               "date": {
-                "label": "Work date"
+                "label": "Work date",
+                "helpText": "When the work on this line was done, if it differs from the document date."
+              },
+              "articleId": {
+                "label": "Article"
+              },
+              "option": {
+                "helpText": "Groups this line under a named option (e.g. \"Basic\", \"Premium\"). Leave every line's option blank, or the same, for an ordinary quote with a single total; name two or more distinct options and the client picks one when accepting.",
+                "label": "Option"
               }
             }
           }
@@ -4660,6 +4726,21 @@
             "params": {
               "note": {
                 "label": "How did the client accept?"
+              },
+              "option": {
+                "label": "Which option did the client accept?"
+              }
+            }
+          },
+          "delete": {
+            "label": "Delete"
+          },
+          "duplicate": {
+            "label": "Duplicate",
+            "params": {
+              "occurrenceDate": {
+                "helpText": "Set by a scheduled recurrence to recompute this document's dates on the duplicate. Left empty for an ordinary, manual duplicate.",
+                "label": "Occurrence date"
               }
             }
           }
@@ -4689,7 +4770,8 @@
         "label": "Credit note",
         "fields": {
           "invoice": {
-            "label": "Invoice"
+            "label": "Invoice",
+            "helpText": "The invoice this credit note corrects. A credit note without an invoice can be saved but not sent yet: it has no client to send it to. Without an invoice, a reason is required below, and some countries do not recognise a credit note with nothing to reference (this screen refuses those with the country's own rule once you try to save)."
           },
           "issueDate": {
             "label": "Date"
@@ -4701,10 +4783,12 @@
             "label": "Notes"
           },
           "reason": {
-            "label": "Reason"
+            "label": "Reason",
+            "helpText": "Why this credit note exists. Required when there is no invoice to correct (a free credit note); optional once one is set, since the correction already says what this document is for."
           },
           "correctedLines": {
-            "label": "Corrected lines"
+            "label": "Corrected lines",
+            "helpText": "The lines of the invoice above that this credit note corrects."
           },
           "lines": {
             "label": "Lines",
@@ -4732,21 +4816,29 @@
                   "KMT": "Kilometre",
                   "SET": "Set",
                   "BX": "Box"
-                }
+                },
+                "helpText": "How the quantity is counted. Pick a unit or type your own."
               },
               "unitPrice": {
                 "label": "Unit price"
               },
               "vatRate": {
-                "label": "VAT rate"
+                "label": "VAT rate",
+                "helpText": "The VAT rate that applies to this line."
               },
               "discountPercent": {
-                "label": "Discount %"
+                "label": "Discount %",
+                "helpText": "Percentage discount applied to this line, before VAT."
               },
               "date": {
-                "label": "Work date"
+                "label": "Work date",
+                "helpText": "When the work on this line was done, if it differs from the document date."
+              },
+              "articleId": {
+                "label": "Article"
               }
-            }
+            },
+            "helpText": "Free-amount lines for a credit note that corrects no particular invoice. Leave empty once \"Invoice\" is set; use \"Corrected lines\" instead."
           }
         },
         "actions": {
@@ -4774,13 +4866,17 @@
           },
           "share-link": {
             "label": "Share link"
+          },
+          "delete": {
+            "label": "Delete"
           }
         },
         "statuses": {
           "draft": "Draft",
           "sending": "Sending",
           "sent": "Sent",
-          "send_failed": "Send failed"
+          "send_failed": "Send failed",
+          "imported": "Imported"
         },
         "widgets": {
           "credit-note:all": {
@@ -4819,13 +4915,16 @@
             }
           },
           "attachment": {
-            "label": "Receipt"
+            "label": "Receipt",
+            "helpText": "A photo or PDF of the receipt."
           },
           "distanceKm": {
-            "label": "Distance (km)"
+            "label": "Distance (km)",
+            "helpText": "Optional, for information only: this app does not apply a per-country mileage rate."
           },
           "ratePerKm": {
-            "label": "Rate per km"
+            "label": "Rate per km",
+            "helpText": "Your own rate. Multiply it by the distance yourself and enter the result in \"Amount\" above."
           },
           "notes": {
             "label": "Notes"
@@ -4858,13 +4957,16 @@
         "label": "Received invoice",
         "fields": {
           "supplier": {
-            "label": "Supplier"
+            "label": "Supplier",
+            "helpText": "The supplier's name, as printed on their own document. Free text, independent from \"Linked supplier\" below."
           },
           "supplierClient": {
-            "label": "Linked supplier"
+            "label": "Linked supplier",
+            "helpText": "This company's own record for the supplier. Matched automatically by VAT number or exact name when the uploaded file carries one; otherwise choose an existing one or create it from the Clients screen."
           },
           "supplierNumber": {
-            "label": "Supplier's invoice number"
+            "label": "Supplier's invoice number",
+            "helpText": "The number as printed on the supplier's own invoice, never assigned by this company."
           },
           "issueDate": {
             "label": "Issue date"
@@ -4910,21 +5012,33 @@
                   "KMT": "Kilometre",
                   "SET": "Set",
                   "BX": "Box"
-                }
+                },
+                "helpText": "How the quantity is counted. Pick a unit or type your own."
               },
               "unitPrice": {
-                "label": "Unit price (excl. VAT)"
+                "label": "Unit price (excl. VAT)",
+                "helpText": "The line's own unit price excluding VAT, as printed on the supplier's document."
               },
               "vatRate": {
-                "label": "VAT rate"
+                "label": "VAT rate",
+                "helpText": "The VAT rate the supplier applied to this line, any value, not this company's own catalog."
               },
               "discountPercent": {
-                "label": "Discount %"
+                "label": "Discount %",
+                "helpText": "Percentage discount applied to this line, before VAT."
               },
               "date": {
-                "label": "Work date"
+                "label": "Work date",
+                "helpText": "When the work on this line was done, if it differs from the document date."
+              },
+              "articleId": {
+                "label": "Article"
               }
             }
+          },
+          "purchaseOrder": {
+            "helpText": "The purchase order this invoice fulfills, if any. Links this invoice into the 3-way match (purchase order × goods receipt × invoice) shown in the \"Reconciliation\" panel below.",
+            "label": "Purchase order"
           }
         },
         "actions": {
@@ -4935,10 +5049,36 @@
             "label": "Approve"
           },
           "reject": {
-            "label": "Reject"
+            "label": "Reject",
+            "params": {
+              "reason": {
+                "helpText": "Why this invoice is refused. Required, and reported back to the sender where applicable.",
+                "label": "Reason"
+              }
+            }
           },
           "delete": {
             "label": "Delete"
+          },
+          "record-payment": {
+            "label": "Record payment",
+            "params": {
+              "amount": {
+                "label": "Amount"
+              },
+              "currency": {
+                "label": "Currency"
+              },
+              "method": {
+                "label": "Method"
+              },
+              "note": {
+                "label": "Note"
+              },
+              "paidAt": {
+                "label": "Paid at"
+              }
+            }
           }
         },
         "statuses": {
@@ -4971,7 +5111,8 @@
             "label": "Currency"
           },
           "reference": {
-            "label": "Reference"
+            "label": "Reference",
+            "helpText": "This company's own internal reference for this order."
           },
           "notes": {
             "label": "Notes"
@@ -5005,6 +5146,9 @@
           },
           "cancel-order": {
             "label": "Cancel"
+          },
+          "delete": {
+            "label": "Delete"
           }
         },
         "statuses": {
@@ -5013,6 +5157,47 @@
           "sent": "Sent",
           "send_failed": "Send failed",
           "cancelled": "Cancelled"
+        }
+      },
+      "goods-receipt": {
+        "actions": {
+          "delete": {
+            "label": "Delete"
+          },
+          "record": {
+            "label": "Record"
+          },
+          "save-draft": {
+            "label": "Save draft"
+          }
+        },
+        "fields": {
+          "lines": {
+            "fields": {
+              "description": {
+                "label": "Designation"
+              },
+              "quantityReceived": {
+                "label": "Quantity received"
+              }
+            },
+            "label": "Lines"
+          },
+          "notes": {
+            "label": "Notes"
+          },
+          "purchaseOrder": {
+            "helpText": "The purchase order this delivery fulfills. Required.",
+            "label": "Purchase order"
+          },
+          "receiptDate": {
+            "label": "Receipt date"
+          }
+        },
+        "label": "Goods receipt",
+        "statuses": {
+          "draft": "Draft",
+          "recorded": "Recorded"
         }
       }
     },
@@ -5089,6 +5274,7 @@
       "unsupportedKind": "Field \"{{label}}\" has kind \"{{kind}}\", which no renderer is registered for.",
       "unknownType": "Unknown document type \"{{typeId}}\".",
       "actionBlockedByPolicy": "Not available: {{reason}}",
+      "actionBlockedTitle": "Blocked by your country's rules",
       "saveLocked": {
         "invoice": "This invoice has been issued and can no longer be edited. To correct it, issue a credit note or a new invoice.",
         "creditNote": "This credit note has been issued and can no longer be edited. To correct it, issue a new credit note.",
@@ -5165,7 +5351,8 @@
           "noTotals": "Add at least one line to see totals.",
           "notesTitle": "Notes"
         }
-      }
+      },
+      "lineTotalWarningsTitle": "The lines do not add up to the stated totals"
     },
     "list": {
       "title": "Saved",
@@ -5321,7 +5508,7 @@
       "net": "Net",
       "vat": "VAT {{rate}}% on {{base}}",
       "gross": "Total",
-      "taxWarningsTitle": "About this VAT treatment",
+      "taxWarningsTitle": "Check how VAT was applied",
       "optionAccepted": "Accepted",
       "commonToAllOptions": "Common to all options",
       "grossIncludingCommon": "Total (including common lines)",
@@ -5329,7 +5516,7 @@
       "vatInNationalCurrency": "VAT in {{currency}}",
       "exchangeRate": "Exchange rate: {{rate}} ({{date}})",
       "warnings": {
-        "noUsableVatRate": "Line {{line}} has no usable VAT rate — counted in net only"
+        "noUsableVatRate": "Line {{line}} has no usable VAT rate, counted in net only"
       }
     },
     "settlement": {
@@ -5343,6 +5530,7 @@
       "convertedNote": "≈ {{converted}} ({{from}}→{{to}} @ {{rate}}, {{date}})",
       "creditsTitle": "Credit notes",
       "creditsEmpty": "No credit notes recorded yet.",
+      "warningsTitle": "Check the credited amounts",
       "badge": {
         "unpaid": "Unpaid",
         "partiallyPaid": "Partially paid",
@@ -5351,8 +5539,9 @@
     },
     "archive": {
       "title": "Legal archive",
-      "retentionUntil": "Retain until {{date}} — {{basis}}",
-      "retentionNone": "No retention duration applies — {{basis}}",
+      "retainUntil": "Retain until {{date}}",
+      "noRetention": "No retention duration applies",
+      "retentionStaleTitle": "This date may be too early",
       "retentionStale": "This date was calculated by an earlier version of the retention rule, which counted every duration from the archiving instant instead of the date the statute counts from. The real date can be up to a year later, so keep the document past the one shown above.",
       "verify": "Verify",
       "resultIntact": "Intact",
@@ -5434,6 +5623,7 @@
       "dialogTitle": "Correction routes — {{number}}",
       "errorTitle": "Could not load correction routes",
       "genericError": "Something went wrong loading correction routes.",
+      "limitationTitle": "Based on the seller's country only",
       "limitation": "These correction options reflect the law of the invoice's own seller country only, not the buyer's. For a purely domestic sale this is the full picture; for a cross-border one, the buyer's own country may also affect whether and how the tax amount can be adjusted.",
       "chooseRoute": "Choose this route",
       "unverifiedReason": "Not established for this country: {{note}}",
@@ -5580,7 +5770,8 @@
       "discard": "Discard",
       "totalsTitle": "Totals",
       "notFound": "This document could not be found.",
-      "importNotTransmitted": "This document was imported with no transmission evidence declared (no SdI id, KSeF number, accredited platform reference, or ATCUD). It must be regularised with the relevant authority."
+      "importNotTransmitted": "This document was imported with no transmission evidence declared (no SdI id, KSeF number, accredited platform reference, or ATCUD). It must be regularised with the relevant authority.",
+      "importNotTransmittedTitle": "Not yet transmitted to the tax authority"
     },
     "acceptance": {
       "menuLabel": "Mark as accepted",
@@ -5602,6 +5793,32 @@
       "signedLabel": "Signed electronically",
       "signedEntry": "Signed electronically on {{date}}",
       "acceptedOption": "Accepted option: {{option}}"
+    },
+    "countryFields": {
+      "buyerReference": {
+        "leitwegId": {
+          "label": "Buyer reference (Leitweg-ID)",
+          "helpText": "The buyer's own reference. For a German public-sector buyer this is usually a Leitweg-ID. Used as BT-10 (\"Buyer reference\") on an EN 16931 export; XRechnung refuses the document when it is missing (rule BR-DE-15)."
+        }
+      },
+      "supplyType": {
+        "label": "Supply type",
+        "crossBorderTax": {
+          "helpText": "Whether this line is a delivery of goods or a supply of services: it decides how a cross-border sale is taxed. Goods sold to a consumer in another EU member state are an intra-Community distance sale, taxed where they arrive once your EU-wide distance sales pass EUR 10 000 in a calendar year (Directive 2006/112/EC art. 33(a) and art. 59c); the same sale as a service stays taxable here (art. 45). Optional: a line that declares nothing is treated as a supply of services."
+        },
+        "billingFramework": {
+          "helpText": "Whether this line is a delivery of goods or a supply of services: used to derive BT-23 (\"cadre de facturation\") on a French invoice. Optional: leave unset if unsure."
+        }
+      },
+      "correctionReason": {
+        "ksef": {
+          "label": "Correction reason",
+          "helpText": "Why this invoice corrects the one above (\"przyczyna korekty\"). Sent to KSeF as the PrzyczynaKorekty element of FA(3) once a corrected invoice is set."
+        }
+      }
+    },
+    "fieldHelp": {
+      "noVatRateCatalog": "No known VAT rate list for this company's country. Enter the applicable rate manually."
     }
   },
   "declarations": {

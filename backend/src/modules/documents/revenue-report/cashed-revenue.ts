@@ -238,7 +238,9 @@ export function buildCashedRevenuePeriods(
 
       if (missingCurrencies.size > 0) {
         for (const currency of missingCurrencies) {
-          warnings.push(`No ${currency}→${referenceCurrency} rate is set - consolidated total omitted.`);
+          warnings.push(
+            `No ${currency}→${referenceCurrency} rate is set, so the consolidated total is omitted.`,
+          );
         }
       } else {
         let totalMinor = 0;

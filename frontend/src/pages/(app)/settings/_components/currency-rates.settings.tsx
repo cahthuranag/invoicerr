@@ -8,6 +8,7 @@ import { Coins } from "lucide-react"
 
 import CurrencySelect from "@/components/currency-select"
 import { Badge } from "@/components/ui/badge"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
@@ -99,7 +100,7 @@ export default function CurrencyRatesSettings() {
   return (
     <SettingsSection
       title={t("settings.company.currencyRates.title", "Exchange rates")}
-      description={t(
+      help={t(
         "settings.company.currencyRates.description",
         "Rates entered here consolidate dashboard totals into your reference currency above and convert a payment recorded in a different currency than its invoice. A daily job also refreshes any pair you have already added, from the European Central Bank or, when it does not quote a currency, from exchangerate-api.com as a fallback; it never creates a new pair on its own. The most recently dated rate for a pair wins, whether it was entered by hand or added automatically.",
       )}
@@ -161,15 +162,16 @@ export default function CurrencyRatesSettings() {
 
       {gaps && gaps.length > 0 && (
         <div className="space-y-2 border-t pt-4" data-cy="currency-rates-gaps">
-          <p className="text-sm font-medium">
-            {t("settings.company.currencyRates.gaps.title", "No automatic rate available")}
-          </p>
-          <p className="text-xs text-muted-foreground text-pretty">
+          <ProseHelp
+            title={t("settings.company.currencyRates.gaps.title", "No automatic rate available")}
+            dataCy="currency-rates-gaps-title"
+            className="text-sm font-medium text-foreground"
+          >
             {t(
               "settings.company.currencyRates.gaps.description",
               "Neither the European Central Bank feed nor the exchangerate-api.com fallback has ever refreshed these pairs automatically. Any rate shown above for them is whatever was last entered by hand.",
             )}
-          </p>
+          </ProseHelp>
           <div className="flex flex-wrap gap-2">
             {gaps.map((g) => (
               <Badge

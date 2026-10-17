@@ -46,6 +46,13 @@ function oldComputeRetention(
   return { retentionUntil: oldAddYears(archivedAt, winning.years), retentionBasis };
 }
 
+// The wording has been reworded since, without touching the algorithm; compare modulo that rewording.
+function inCurrentWording(basis: string): string {
+  return basis
+    .replace(' — the longer of ', ': the longer of ')
+    .replace(' — no duration invented.', ', so no duration is invented.');
+}
+
 describe('retentionBasis text: OLD vs NEW algorithm, over every real country file that exists today', () => {
   // The REALISTIC case: a document is archived shortly after it is issued (`archive-on-send.ts`
   // writes the archive as part of the same "send" action that stamps the issue date) — issueDate just
@@ -61,7 +68,7 @@ describe('retentionBasis text: OLD vs NEW algorithm, over every real country fil
     const oldResult = oldComputeRetention(file, archivedAt);
     const newResult = computeRetention(file, archivedAt, issueDate);
 
-    expect(newResult.retentionBasis).toBe(oldResult.retentionBasis);
+    expect(newResult.retentionBasis).toBe(inCurrentWording(oldResult.retentionBasis));
   });
 
   it('FR: the computed DATE nonetheless differs between the two algorithms — a real defect, invisible in the text', () => {
@@ -78,7 +85,7 @@ describe('retentionBasis text: OLD vs NEW algorithm, over every real country fil
     // document on 2036-09-13, roughly a year before the law (per the corrected reading) actually
     // allows it to — exactly the dangerous direction `cf2e7323` fixed, and exactly what
     // `retentionBasis`'s own text never reveals.
-    expect(newResult.retentionBasis).toBe(oldResult.retentionBasis);
+    expect(newResult.retentionBasis).toBe(inCurrentWording(oldResult.retentionBasis));
     expect(newResult.retentionUntil?.toISOString()).not.toBe(oldResult.retentionUntil?.toISOString());
     expect(newResult.retentionUntil!.getTime()).toBeGreaterThan(oldResult.retentionUntil!.getTime());
   });

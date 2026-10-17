@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { Skeleton } from "@/components/ui/skeleton"
 import { type SelectableRowsResult, useCorrectionRoutes, useRunDocumentAction } from "@/hooks/queries"
 import { ApiError, apiFetch } from "@/hooks/use-api-query"
@@ -129,16 +130,7 @@ interface CorrectionRouteRowProps {
   onChoose: (route: CorrectionRouteView) => void
 }
 
-/** One route, one row: its display name and status (both UI chrome, translated), a curated
- *  user-facing explanation (see this file's own header on why NOT the raw `label` any more, issue
- *  #554), and either a real "choose" button or a disabled one carrying its own blocked reason, the
- *  exact same dual rendering (a `tooltip` AND a plain, always-visible paragraph) document-list.tsx's
- *  own `DocumentRowActions` already uses for `policyBlockedReason`, for the identical reason spelled
- *  out there: a disabled `<button>`'s `disabled:pointer-events-none` means a mouse hover never reveals
- *  a tooltip-only reason at all. `unverifiedReason` below still interpolates `route.label`; that is
- *  NOT the raw `sourceText` issue #554 is about (a route can only be `unverified` with an already
- *  English `resolutionNote`, never a `legal` citation, see `schema.ts#assertValidCorrectionRouteFact`
- *  and `describeLabel` in correction-routes.ts), so it is left as-is. */
+// The route name carries its explanation and, when it cannot be chosen, the reason, behind its `?`.
 function CorrectionRouteRow({ route, countryCode, onChoose }: CorrectionRouteRowProps) {
   const { t } = useTranslation()
   const choosable = isChoosable(route)
@@ -148,21 +140,19 @@ function CorrectionRouteRow({ route, countryCode, onChoose }: CorrectionRouteRow
       : route.status === "unverified"
         ? t("documents.correction.unverifiedReason", { note: route.label })
         : undefined
-  // See this file's own header: the curated replacement for the raw `route.label`. A country/route
-  // pair this catalog ships without a matching key (should not happen, issue #554's own brief covers
-  // all eleven routes for all five shipped countries) falls back to "", which renders nothing below,
-  // never the raw provenance text.
-  const explanation = t(`documents.correction.explanations.${countryCode}.${route.routeId}`, "")
-
   return (
     <div
       className={cn("space-y-2 rounded-md border p-3", route.status === "required" && "border-primary")}
       data-cy={`document-correction-route-${route.routeId}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-medium">
-          {t(`documents.correction.routes.${route.routeId}`, route.routeId)}
-        </span>
+        <ProseHelp
+          title={t(`documents.correction.routes.${route.routeId}`, route.routeId)}
+          dataCy={`document-correction-route-${route.routeId}-label`}
+          className="text-sm font-medium text-foreground"
+        >
+          {[t(`documents.correction.explanations.${countryCode}.${route.routeId}`, ""), blockedReason ?? ""]}
+        </ProseHelp>
         <Badge
           variant={choosable ? undefined : "outline"}
           className={STATUS_BADGE_CLASS[route.status]}
@@ -171,18 +161,6 @@ function CorrectionRouteRow({ route, countryCode, onChoose }: CorrectionRouteRow
           {t(`documents.correction.status.${route.status}`, route.status)}
         </Badge>
       </div>
-
-      {/* The curated explanation, translated (issue #554), never the raw `route.label` any more (see
-          this file's own header). Rendered only when a translation exists; a missing key renders
-          nothing rather than falling back to the catalog's own research notes. */}
-      {explanation && (
-        <p
-          className="text-xs text-muted-foreground break-words"
-          data-cy={`document-correction-route-${route.routeId}-label`}
-        >
-          {explanation}
-        </p>
-      )}
 
       <Button
         type="button"
@@ -195,15 +173,6 @@ function CorrectionRouteRow({ route, countryCode, onChoose }: CorrectionRouteRow
       >
         {t("documents.correction.chooseRoute")}
       </Button>
-
-      {blockedReason && (
-        <p
-          className="text-xs text-muted-foreground break-words"
-          data-cy={`document-correction-route-${route.routeId}-reason`}
-        >
-          {blockedReason}
-        </p>
-      )}
     </div>
   )
 }
@@ -351,26 +320,18 @@ function CorrectionRoutesDialogBody({ instance, onClose }: CorrectionRoutesDialo
   }
 
   if (view.kind === "confirm-cancel") {
-    // Same curated explanation as the routes list (see this file's own header, issue #554), never
-    // `view.route.label` any more, not even on this confirmation screen.
-    const confirmCancelExplanation = t(
-      `documents.correction.explanations.${data.countryCode}.${view.route.routeId}`,
-      "",
-    )
     return (
       <div className="space-y-4 min-w-0" data-cy="document-correction-confirm-cancel">
         <Alert variant="destructive" data-cy="document-correction-confirm-cancel-alert">
           <AlertTitle>{t("documents.correction.confirmCancel.title")}</AlertTitle>
           <AlertDescription>{t("documents.correction.confirmCancel.body")}</AlertDescription>
         </Alert>
-        {confirmCancelExplanation && (
-          <p
-            className="text-xs text-muted-foreground break-words"
-            data-cy="document-correction-confirm-cancel-label"
-          >
-            {confirmCancelExplanation}
-          </p>
-        )}
+        <ProseHelp
+          title={t(`documents.correction.routes.${view.route.routeId}`, view.route.routeId)}
+          dataCy="document-correction-confirm-cancel-label"
+        >
+          {t(`documents.correction.explanations.${data.countryCode}.${view.route.routeId}`, "")}
+        </ProseHelp>
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
@@ -412,14 +373,9 @@ function CorrectionRoutesDialogBody({ instance, onClose }: CorrectionRoutesDialo
     // phone's viewport no matter how narrow `DialogContent`'s own max-width was set, caught by the
     // phone-viewport half of the e2e no-horizontal-scroll assertion in 43-correction-routes.cy.ts.
     <div className="space-y-4 min-w-0">
-      {/* The seller×buyer limitation, discreet but never hidden: this is the SELLER-only answer, and
-          the seller's own law is not always the whole story once a buyer in a different country is
-          involved. A single static, translated key (issue #554), never `data.limitation`, the
-          backend's own developer note, any more (see this file's own header; the field stays on the
-          API response for other consumers). */}
-      <p className="text-xs text-muted-foreground break-words" data-cy="document-correction-limitation">
+      <ProseHelp title={t("documents.correction.limitationTitle")} dataCy="document-correction-limitation">
         {t("documents.correction.limitation")}
-      </p>
+      </ProseHelp>
       {visibleRoutes.length === 0 ? (
         // Every route this country recognizes is forbidden: a plain sentence, never an empty list
         // that reads as a loading glitch or a bug.

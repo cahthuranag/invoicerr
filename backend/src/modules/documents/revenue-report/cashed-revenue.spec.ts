@@ -166,7 +166,7 @@ describe('buildCashedRevenuePeriods', () => {
       rates,
     );
     expect(periods[0].consolidated).toBeNull();
-    expect(periods[0].warnings).toEqual(['No USD→EUR rate is set - consolidated total omitted.']);
+    expect(periods[0].warnings).toEqual(['No USD→EUR rate is set, so the consolidated total is omitted.']);
     // The per-currency breakdown is still honest and complete, unaffected.
     expect(periods[0].byCurrency).toEqual([{ currency: 'USD', totalMinor: 5000 }]);
   });

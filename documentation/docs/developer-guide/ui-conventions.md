@@ -81,6 +81,82 @@ next to a control is flagged in any colour: a text element whose key, variable o
 lock belongs behind the label's lock instead.
 :::
 
+## Explanations and warnings
+
+Explanatory prose is never printed in full on a screen. A block that explains something, such as the
+legal basis of an archive's retention date, the statute quote behind a channel obligation, what a
+correction route means or what a settings section does, shows its title followed by the same `?` as a
+field description, and the text opens on hover, keyboard focus and tap. This covers text the server
+composes (tax warnings, settlement and line-total warnings, retention citations, source quotes,
+disclaimers, blocked reasons) as much as long texts written in the locale files.
+
+A warning that asks the user to act keeps a one-line visible status: a warning icon and a short title
+in the warning colour that says what to check, with the long explanation behind its `?`. A pure
+explanation shows its title in the muted colour. Use `ProseHelp` from `@/components/ui/prose-help`,
+which wraps the field help popover. An array of texts opens as one paragraph each, and empty texts
+show no `?` at all:
+
+```tsx
+<ProseHelp tone="warning" title={t("documents.totals.taxWarningsTitle")} dataCy="document-tax-warnings">
+  {warnings}
+</ProseHelp>
+
+<ProseHelp title={t("documents.archive.retainUntil", { date })} dataCy="document-archive-retention">
+  {archive.retentionBasis}
+</ProseHelp>
+```
+
+A settings page, section or field group takes the long text through its `help` prop instead of
+`description`; `description` stays for one short line:
+
+```tsx
+<SettingsSection title={t("settings.company.approval.title")} help={t("settings.company.approval.description")}>
+```
+
+An action blocked by a country rule keeps its button disabled. Under the button, `BlockedActionReason`
+shows the status "Blocked by your country's rules" with the rule behind its `?`; in a list row, a
+`FieldLock` next to the button carries the rule. A disabled button never shows a tooltip, so a reason
+placed only in `tooltip` is never seen.
+
+The `?` button is described by the full text (`aria-describedby`), so a screen reader announces it on
+focus without opening the popover. The popover is named after its button and is focusable: when its
+text is taller than the space it has, it fades at the bottom, scrolls with the wheel or a swipe, and the
+arrow and page keys scroll it while the `?` has focus. Text composed on the server for these blocks
+uses commas, colons and full stops rather than em dashes; quoted statute text keeps its original
+punctuation.
+
+Visible on purpose: a short status line that is the information itself, such as the exchange rate a
+dashboard total was converted at, or "Line 3 has no usable VAT rate, counted in net only", and the text
+a user must read before an irreversible action, such as the danger zone's reset and delete
+confirmations.
+
+:::warning[Enforced in CI]
+`src/components/ui/prose-help.guard.spec.ts` fails the frontend unit tests when, outside a
+`ProseHelp`, `FieldHelp`, `FieldLock`, a `help` prop or a field label's `description`:
+
+- a list of `warnings` or `notes` is mapped to elements;
+- a retention basis, source quote, resolution note, disclaimer or blocked reason is printed (testing
+  one in a condition is fine);
+- an English text of 180 characters or more is rendered, whether as a child, a description, a
+  tooltip or a title.
+
+Each exception is named in the guard's allow-list, by file and by text.
+:::
+
+`cypress/e2e/124-prose-help.cy.ts` opens a long popover on a 390 px screen and runs axe with it open.
+
+## Loading states
+
+Loading never moves or resizes what is already on screen, and never shows figures that no longer
+apply. When a filter or a period changes, each card keeps its size, its title and its caption, and
+only its figures (a value, list rows, a chart, table rows) turn into skeletons of the same size until
+the new ones arrive: the query keeps the previous result as `placeholderData: keepPreviousData`, and
+the widget renderers wrap every figure in `WidgetValue`, which hides it behind a skeleton while the
+grid reloads. The grid carries `aria-busy` and a screen-reader-only "Loading…" status. A first load shows skeletons
+with the dimensions of the content they stand for: the widget grid reuses the card heights it last
+measured at the same window width. `e2e/cypress/e2e/124-dashboard-stable-loading.cy.ts` compares
+card bounding boxes before and during a load, the pattern to follow for another screen.
+
 ## Accessibility checks
 
 Every control has an accessible name, and that name contains the text the control shows (WCAG 2.5.3).

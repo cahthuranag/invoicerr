@@ -11,6 +11,7 @@ import type { DocumentFormState } from "@/components/documents/use-document-form
 import { useActionTransmissionPreview } from "@/hooks/queries/use-document-types"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { ProseHelp } from "@/components/ui/prose-help"
 
 /**
  * The rendered pieces of a document form — the fields, one action button, the params dialog —
@@ -65,20 +66,41 @@ export function DocumentFormFields({ descriptor, state, readOnly = false }: Docu
         ))}
       </DocumentFormReadOnlyProvider>
 
-      {/* See use-document-form.ts's extractLineTotalWarnings: a NAMED, never-blocking warning when
-          this record's own lines don't sum to its stated totals (rounding tolerance aside).
-          Rendered verbatim, untranslated, exactly like DocumentTotals's own `warnings` block (both
-          are backend-composed sentences, not i18n keys). */}
-      {lineTotalWarnings.length > 0 && (
-        <div className="space-y-1 rounded-md bg-warning p-3" data-cy="document-line-total-warnings">
-          {lineTotalWarnings.map((warning) => (
-            <p key={warning} className="text-xs text-warning-foreground">
-              {warning}
-            </p>
-          ))}
-        </div>
-      )}
+      <LineTotalWarnings warnings={lineTotalWarnings} />
     </form>
+  )
+}
+
+// The supplier's own lines and totals disagree: a status the user acts on, the server's figures behind its `?`.
+export function LineTotalWarnings({ warnings }: Readonly<{ warnings?: string[] }>) {
+  const { t } = useTranslation()
+  if (!warnings?.length) return null
+  return (
+    <ProseHelp
+      tone="warning"
+      title={t("documents.form.lineTotalWarningsTitle")}
+      dataCy="document-line-total-warnings"
+    >
+      {warnings}
+    </ProseHelp>
+  )
+}
+
+// Not prefixed "document-action-": 17-document-descriptor.cy.ts reads that prefix as an action id.
+export function BlockedActionReason({
+  action,
+  className,
+}: Readonly<{ action: DocumentActionDescriptor; className?: string }>) {
+  const { t } = useTranslation()
+  return (
+    <ProseHelp
+      tone="warning"
+      title={t("documents.form.actionBlockedTitle")}
+      dataCy={`document-blocked-reason-${action.id}`}
+      className={className}
+    >
+      {t("documents.form.actionBlockedByPolicy", { reason: action.policyBlockedReason })}
+    </ProseHelp>
   )
 }
 
@@ -111,9 +133,6 @@ export function DocumentActionButton({
   const { t } = useTranslation()
   const { currentStatus, runner } = state
   const hint = transitionHint(t, descriptor, action, currentStatus)
-  const blocked = action.policyBlockedReason
-    ? t("documents.form.actionBlockedByPolicy", { reason: action.policyBlockedReason })
-    : undefined
 
   return (
     <div className={className}>
@@ -122,16 +141,16 @@ export function DocumentActionButton({
         variant={variant}
         loading={runner.isRunning && runner.pendingAction === undefined}
         disabled={!!action.policyBlockedReason}
-        tooltip={blocked ?? (captions ? undefined : hint)}
+        tooltip={
+          action.policyBlockedReason ? t("documents.form.actionBlockedTitle") : captions ? undefined : hint
+        }
         onClick={() => runner.handleAction(action)}
         dataCy={`document-action-${action.id}`}
       >
         {action.label}
       </Button>
       {captions && hint && (
-        // Deliberately NOT prefixed "document-action-" — see the sibling blocked-reason
-        // paragraph's own comment on why 17-document-descriptor.cy.ts's action-button scan
-        // would otherwise misread this as a bogus action.
+        // Not prefixed "document-action-": 17-document-descriptor.cy.ts reads that prefix as an action id.
         <p
           className="mt-1 max-w-xs text-xs text-muted-foreground"
           data-cy={`document-transition-hint-${action.id}`}
@@ -139,21 +158,7 @@ export function DocumentActionButton({
           {hint}
         </p>
       )}
-      {blocked && (
-        // Deliberately NOT prefixed "document-action-" — that prefix is what
-        // 17-document-descriptor.cy.ts's "no button appears that the descriptor didn't
-        // declare" check scans for, and treats every match as an ACTION id to look up in the
-        // descriptor; a reason element sharing that prefix would be misread as a bogus action.
-        // Always printed, captions or not: a disabled <button> (`disabled:pointer-events-none`,
-        // ui/button.tsx) never receives a real hover, so a tooltip alone would leave a mouse user
-        // staring at a grayed-out button with no reason in sight.
-        <p
-          className="mt-1 max-w-xs text-xs text-muted-foreground"
-          data-cy={`document-blocked-reason-${action.id}`}
-        >
-          {blocked}
-        </p>
-      )}
+      {action.policyBlockedReason && <BlockedActionReason action={action} className="mt-1 max-w-xs" />}
     </div>
   )
 }

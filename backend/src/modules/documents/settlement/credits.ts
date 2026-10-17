@@ -146,7 +146,7 @@ export function creditsForInvoiceFromNotes(
     if (!noteCurrency || noteCurrency !== invoiceCurrency) {
       warnings.push(
         `Credit note "${label}" declares its own currency as ${noteCurrency ?? 'unrecorded'}, ` +
-          `different from invoice's own ${invoiceCurrency ?? 'unrecorded currency'} — the credited ` +
+          `different from invoice's own ${invoiceCurrency ?? 'unrecorded currency'}. The credited ` +
           `amount is always computed from, and expressed in, the invoice's own currency; counted as ` +
           `${invoiceCurrency ?? 'unrecorded currency'}, never converted (there is nothing to convert).`,
       );

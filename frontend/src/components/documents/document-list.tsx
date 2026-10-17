@@ -54,11 +54,7 @@ import { LtrValue } from "@/components/ui/ltr-value"
 import { type RowAmount, resolveRowAmount } from "@/components/documents/list-amount"
 import { isEmptyFieldValue, resolveListFields } from "@/components/documents/list-fields"
 import { findCurrencyField } from "@/components/documents/totals-shape"
-import type {
-  DocumentActionDescriptor,
-  DocumentInstance,
-  DocumentTypeDescriptor,
-} from "@/components/documents/types"
+import type { DocumentInstance, DocumentTypeDescriptor } from "@/components/documents/types"
 import { isActionAvailable, numberingDisplayState, statusLabel } from "@/components/documents/types"
 import { useDocumentActionRunner } from "@/components/documents/use-document-action-runner"
 import { DatePicker } from "@/components/date-picker"
@@ -80,6 +76,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { EmptyState } from "@/components/ui/empty-state"
+import { FieldLock } from "@/components/ui/field-help"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -332,11 +329,6 @@ function DocumentRowActions({ descriptor, instance, onActionSuccess, children }:
   // second silently replace the first.
   const customRowExtras = getDocumentCustomComponents(descriptor.id, "list-row-extra")
 
-  const blockedLabel = (action: DocumentActionDescriptor) =>
-    action.policyBlockedReason
-      ? t("documents.form.actionBlockedByPolicy", { reason: action.policyBlockedReason })
-      : undefined
-
   const primarySlot = isProcessing ? (
     <span className="text-sm text-muted-foreground" data-cy={`document-row-processing-${instance.id}`}>
       {t("documents.list.processing")}
@@ -346,19 +338,30 @@ function DocumentRowActions({ descriptor, instance, onActionSuccess, children }:
       // `outline`, never `default`: the page's one filled button is "New <type>" in the header. A
       // disabled primary still shows, carrying its reason in a tooltip — a rule reads as a rule,
       // an empty slot reads as a bug (the same call the detail page's header makes).
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="w-full sm:w-auto"
-        disabled={!!primary.policyBlockedReason}
-        tooltip={blockedLabel(primary)}
-        loading={isRunning && pendingAction === undefined}
-        onClick={() => handleAction(primary)}
-        dataCy={`document-row-action-${primary.id}-${instance.id}`}
-      >
-        {primary.label}
-      </Button>
+      <span className="flex w-full items-center gap-1.5 sm:w-auto">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="flex-1 sm:flex-none"
+          disabled={!!primary.policyBlockedReason}
+          loading={isRunning && pendingAction === undefined}
+          onClick={() => handleAction(primary)}
+          dataCy={`document-row-action-${primary.id}-${instance.id}`}
+        >
+          {primary.label}
+        </Button>
+        {primary.policyBlockedReason && (
+          <FieldLock
+            id={`document-row-${instance.id}-${primary.id}-lock`}
+            label={primary.label}
+            describeTrigger
+            dataCy={`document-row-blocked-reason-${primary.id}-${instance.id}`}
+          >
+            {t("documents.form.actionBlockedByPolicy", { reason: primary.policyBlockedReason })}
+          </FieldLock>
+        )}
+      </span>
     )
   )
 
@@ -403,11 +406,11 @@ function DocumentRowActions({ descriptor, instance, onActionSuccess, children }:
         >
           {secondary.map((action) => {
             const hint = transitionHint(t, descriptor, action, instance.status)
-            const blocked = blockedLabel(action)
+            const blocked = !!action.policyBlockedReason
             return (
               <DropdownMenuItem
                 key={action.id}
-                disabled={!!blocked}
+                disabled={blocked}
                 onSelect={() => handleAction(action)}
                 data-cy={`document-row-action-${action.id}-${instance.id}`}
               >
@@ -419,7 +422,7 @@ function DocumentRowActions({ descriptor, instance, onActionSuccess, children }:
                       className="max-w-xs text-xs text-muted-foreground"
                       data-cy={`document-row-blocked-reason-${action.id}-${instance.id}`}
                     >
-                      {blocked}
+                      {t("documents.form.actionBlockedTitle")}
                     </span>
                   )}
                 </div>
@@ -1064,11 +1067,7 @@ export function DocumentList({
             variant="secondary"
             onClick={onCreate}
             disabled={!creatable}
-            tooltip={
-              !creatable && createBlockedReason
-                ? t("documents.form.actionBlockedByPolicy", { reason: createBlockedReason })
-                : undefined
-            }
+            tooltip={!creatable && createBlockedReason ? t("documents.form.actionBlockedTitle") : undefined}
             dataCy="document-create-button-empty"
           >
             <Plus aria-hidden="true" />
@@ -1131,15 +1130,23 @@ export function DocumentList({
                 aria-label={createLabel}
                 disabled={!creatable}
                 tooltip={
-                  !creatable && createBlockedReason
-                    ? t("documents.form.actionBlockedByPolicy", { reason: createBlockedReason })
-                    : undefined
+                  !creatable && createBlockedReason ? t("documents.form.actionBlockedTitle") : undefined
                 }
                 dataCy="document-create-button"
               >
                 <Plus aria-hidden="true" />
                 <span className="hidden md:inline">{createLabel}</span>
               </Button>
+              {!creatable && createBlockedReason && (
+                <FieldLock
+                  id="document-create-lock"
+                  label={createLabel}
+                  describeTrigger
+                  dataCy="document-create-blocked-reason"
+                >
+                  {t("documents.form.actionBlockedByPolicy", { reason: createBlockedReason })}
+                </FieldLock>
+              )}
             </div>
           </div>
 

@@ -755,10 +755,11 @@ export default function CompanySettings() {
               // instead of silently deleted. Shown explicitly, with a deliberate removal action, so
               // the user decides their fate instead of an unattended effect.
               <SettingsFieldGroup
+                dataCy="company-identifiers-on-file-group"
                 legend={t("settings.company.form.identifiers.onFile.label", "Other identifiers on file")}
-                description={t(
+                help={t(
                   "settings.company.form.identifiers.onFile.description",
-                  "Saved on this company before, but not requested by the currently selected country. Kept as-is rather than removed automatically — remove one only if you're sure it's no longer needed.",
+                  "Saved on this company before, but not requested by the currently selected country. Kept as-is rather than removed automatically: remove one only if you're sure it's no longer needed.",
                 )}
               >
                 <SettingsList dataCy="company-identifiers-on-file">
@@ -1296,7 +1297,8 @@ export default function CompanySettings() {
 
           <SettingsSection
             title={t("settings.company.approval.title")}
-            description={t("settings.company.approval.description")}
+            help={t("settings.company.approval.description")}
+            dataCy="company-approval-section"
             contentClassName="grid gap-5"
           >
             <FormField
@@ -1329,7 +1331,8 @@ export default function CompanySettings() {
 
           <SettingsSection
             title={t("settings.company.reconciliation.title")}
-            description={t("settings.company.reconciliation.description")}
+            help={t("settings.company.reconciliation.description")}
+            dataCy="company-reconciliation-section"
             contentClassName="grid gap-5"
           >
             <FormField
@@ -1421,10 +1424,11 @@ export default function CompanySettings() {
 
           <SettingsSection
             title={t("settings.company.revenueBasis.title", "Revenue basis")}
-            description={t(
+            help={t(
               "settings.company.revenueBasis.description",
               "Which figure this company declares as its own revenue, and over which period. Defaulted from your country where a clear regime exists, always overridable. This is an aid, not tax advice - verify against your own accounting records.",
             )}
+            dataCy="company-revenue-basis-section"
             contentClassName="grid gap-5 sm:grid-cols-2"
           >
             <FormField

@@ -103,7 +103,7 @@ export function consolidateByCurrency(
     // Never a partial sum — see this module's own header. Every currency this period actually saw is
     // named, not just the first one, so the person fixing it doesn't have to hunt for the rest.
     const warnings = missing.map(
-      (currency) => `No ${currency}→${referenceCurrency} rate is set — consolidated total omitted.`,
+      (currency) => `No ${currency}→${referenceCurrency} rate is set, so the consolidated total is omitted.`,
     );
     return { consolidated: null, warnings };
   }

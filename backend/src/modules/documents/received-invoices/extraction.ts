@@ -89,7 +89,7 @@
  * `data.lines[i].vatRate`, a 'select' field kind (field-kinds.ts) that requires a STRING value — the
  * exact same convention `invoice.descriptor.ts`'s own line fixture already uses (`vatRate: '20'`).
  * An unparseable rate is passed through as-is rather than dropped: `compute-totals.ts`'s own
- * `extractVatRate` already turns a non-numeric 'select' value into its existing "no usable VAT rate —
+ * `extractVatRate` already turns a non-numeric 'select' value into its existing "no usable VAT rate,
  * counted in net only" warning — reused, not re-implemented, here.
  *
  * ## Supplier VAT extraction

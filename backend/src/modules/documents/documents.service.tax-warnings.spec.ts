@@ -121,15 +121,15 @@ describe('DocumentsService.getTaxWarnings — the caveats the tax engine records
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toMatch(/has not been confirmed valid yet/);
     // The consequence, not just the fact: this is the half that changes the tax.
-    expect(warnings[0]).toMatch(/treating this buyer as B2C/);
+    expect(warnings[0]).toMatch(/treated as B2C/);
     // Pinned WHOLE, unusually for this codebase, and only for the two warnings a user can actually
     // reach today: the document screen's own suite renders these exact strings
     // (`frontend/src/components/documents/document-tax-warnings.spec.tsx`), which it can only do
     // faithfully while the two literals agree. Rewording the engine's message is fine — it fails
     // here first, pointing at the copy that has to move with it.
     expect(warnings[0]).toBe(
-      'Buyer VAT number "DE136695976" has not been confirmed valid yet (status: not checked) — ' +
-        'treating this buyer as B2C until it is verified, never a silent B2B.',
+      'Buyer VAT number "DE136695976" has not been confirmed valid yet (status: not checked), so this ' +
+        'buyer is treated as B2C until it is verified, never a silent B2B.',
     );
   });
 
@@ -147,7 +147,7 @@ describe('DocumentsService.getTaxWarnings — the caveats the tax engine records
       'This invoice is an intra-Community distance sale taxed in DE (EU One-Stop-Shop, Directive ' +
         "2006/112/EC art. 33(a)), so DE's STANDARD VAT rate (19%) was applied. DE's own reduced " +
         'rates are not modelled here and an invoice line carries nothing that says which products ' +
-        'they cover — check the destination rate yourself if what you are selling is reduced-rated ' +
+        'they cover. Check the destination rate yourself if what you are selling is reduced-rated ' +
         'there, or this invoice over-charges the customer.',
     );
   });

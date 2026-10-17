@@ -3,7 +3,7 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import { CircleHelp, Lock } from "lucide-react"
 import type * as React from "react"
-import { useEffect, useId, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Label } from "@/components/ui/label"
@@ -29,7 +29,15 @@ type LabelHintProps = Readonly<{
   contentDataCy: string
   dataCy?: string
   className?: string
+  describeTrigger?: boolean
 }>
+
+const SCROLL_KEYS: Record<string, (el: HTMLElement) => number> = {
+  ArrowDown: () => 40,
+  ArrowUp: () => -40,
+  PageDown: (el) => el.clientHeight * 0.9,
+  PageUp: (el) => -el.clientHeight * 0.9,
+}
 
 // The hidden node is what aria-describedby resolves; the popover is the sighted copy.
 function LabelHint({
@@ -41,9 +49,22 @@ function LabelHint({
   contentDataCy,
   dataCy,
   className,
+  describeTrigger,
 }: LabelHintProps) {
   const [open, setOpen] = useState(false)
   const [pinned, setPinned] = useState(false)
+  const [moreBelow, setMoreBelow] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
+  // A fade at the bottom says the text goes on when it is taller than the space it has.
+  const measure = useCallback(() => {
+    const el = contentRef.current
+    setMoreBelow(!!el && el.scrollTop + el.clientHeight < el.scrollHeight - 1)
+  }, [])
+  useEffect(() => {
+    if (!open) return
+    const frame = requestAnimationFrame(measure)
+    return () => cancelAnimationFrame(frame)
+  }, [open, measure])
 
   const show = (pin: boolean) => {
     setOpen(true)
@@ -76,6 +97,7 @@ function LabelHint({
         <PopoverPrimitive.Trigger
           type="button"
           aria-label={triggerLabel}
+          aria-describedby={describeTrigger ? id : undefined}
           data-cy={triggerDataCy}
           className={cn(
             "relative -my-1 inline-flex size-5 shrink-0 items-center justify-center rounded-full transition-colors after:absolute after:-inset-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
@@ -91,10 +113,22 @@ function LabelHint({
             if (open && pinned) hide()
             else show(true)
           }}
+          onKeyDown={(event) => {
+            const el = contentRef.current
+            const step = SCROLL_KEYS[event.key]
+            if (!open || !el || !step || el.scrollHeight <= el.clientHeight) return
+            event.preventDefault()
+            el.scrollBy({ top: step(el) })
+          }}
         >
           {icon}
         </PopoverPrimitive.Trigger>
         <PopoverContent
+          ref={contentRef}
+          aria-label={triggerLabel}
+          tabIndex={0}
+          data-more={moreBelow || undefined}
+          onScroll={measure}
           side="top"
           align="start"
           collisionPadding={16}
@@ -103,7 +137,7 @@ function LabelHint({
           onPointerLeave={hoverOut}
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => event.preventDefault()}
-          className="w-auto max-w-[min(20rem,calc(100vw-2rem))] p-3 text-sm leading-relaxed text-pretty break-words whitespace-pre-line"
+          className="max-h-(--radix-popover-content-available-height) w-auto max-w-[min(20rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain p-3 text-sm leading-relaxed text-pretty break-words whitespace-pre-line focus-visible:ring-[3px] focus-visible:ring-ring/50 data-more:after:pointer-events-none data-more:after:sticky data-more:after:bottom-0 data-more:after:-mt-10 data-more:after:block data-more:after:h-10 data-more:after:bg-linear-to-b data-more:after:from-transparent data-more:after:to-popover data-more:after:content-['']"
         >
           {children}
         </PopoverContent>
@@ -118,9 +152,10 @@ type FieldHelpProps = Readonly<{
   label?: string
   dataCy?: string
   className?: string
+  describeTrigger?: boolean
 }>
 
-export function FieldHelp({ id, children, label, dataCy, className }: FieldHelpProps) {
+export function FieldHelp({ id, children, label, dataCy, className, describeTrigger }: FieldHelpProps) {
   const { t } = useTranslation()
   return (
     <LabelHint
@@ -132,6 +167,7 @@ export function FieldHelp({ id, children, label, dataCy, className }: FieldHelpP
       triggerDataCy={dataCy ? `${dataCy}-trigger` : "field-help-trigger"}
       contentDataCy={dataCy ? `${dataCy}-content` : "field-help-content"}
       dataCy={dataCy}
+      describeTrigger={describeTrigger}
       className={cn(
         "text-muted-foreground hover:text-foreground data-[state=open]:text-foreground",
         className,
@@ -147,9 +183,10 @@ type FieldLockProps = Readonly<{
   children: React.ReactNode
   label?: string
   dataCy?: string
+  describeTrigger?: boolean
 }>
 
-export function FieldLock({ id, children, label, dataCy }: FieldLockProps) {
+export function FieldLock({ id, children, label, dataCy, describeTrigger }: FieldLockProps) {
   const { t } = useTranslation()
   return (
     <LabelHint
@@ -161,6 +198,7 @@ export function FieldLock({ id, children, label, dataCy }: FieldLockProps) {
       triggerDataCy={dataCy ? `${dataCy}-trigger` : "field-lock-trigger"}
       contentDataCy={dataCy ? `${dataCy}-content` : "field-lock-content"}
       dataCy={dataCy}
+      describeTrigger={describeTrigger}
       className="text-destructive hover:text-destructive/80"
     >
       {children}

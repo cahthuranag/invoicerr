@@ -169,8 +169,8 @@ export function computeRetention(
     return {
       retentionUntil: null,
       retentionBasis: file
-        ? `No retention rule declared for ${file.countryCode} — no duration invented.`
-        : 'No retention rule declared for this country — no duration invented.',
+        ? `No retention rule declared for ${file.countryCode}, so no duration is invented.`
+        : 'No retention rule declared for this country, so no duration is invented.',
     };
   }
 
@@ -205,7 +205,7 @@ export function computeRetention(
   let retentionBasis =
     others.length === 0
       ? `${describeRule(winning.rule)}.`
-      : `${describeRule(winning.rule)} — the longer of ${resolved.length} obligations that apply ` +
+      : `${describeRule(winning.rule)}: the longer of ${resolved.length} obligations that apply ` +
         `simultaneously to the same company: ${resolved.map((r) => describeRule(r.rule)).join('; ')}.`;
   if (skipped > 0) {
     retentionBasis += ` (${skipped} other declared rule(s) could not be resolved: missing issue date.)`;

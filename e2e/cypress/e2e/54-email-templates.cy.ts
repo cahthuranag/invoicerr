@@ -230,9 +230,9 @@ describe("Settings — email templates per document type", () => {
 		// The save SUCCEEDED (never a 400) — a success toast, never an error toast.
 		cy.get('[data-sonner-toast]', { timeout: 10000 }).should("contain.text", "saved successfully");
 
-		cy.get('[data-cy="email-template-warnings"]', { timeout: 10000 })
-			.should("exist")
-			.and("contain.text", "notAThing");
+		cy.get('[data-cy="email-template-warnings"]', { timeout: 10000 }).should("be.visible");
+		cy.get('[data-cy="email-template-warnings-help-trigger"]').click();
+		cy.get('[data-cy="email-template-warnings-help-content"]').should("contain.text", "notAThing");
 
 		getDocumentEmailTemplate("quote").then((stored) => {
 			expect(

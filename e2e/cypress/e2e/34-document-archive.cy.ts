@@ -130,9 +130,13 @@ describe('Legal archiving ⚖ — hash, date, verification and FR retention, pro
 			// locale-invariant unlike the full formatted date `toLocaleDateString()` renders) proves the
 			// SCREEN shows the actually-computed date, not merely a citation with no date behind it — see
 			// the API assertions below for exactly which computation produces "2037".
-			cy.get('[data-cy="document-archive-retention"]')
-				.should("contain.text", "C. com. art. L123-22")
-				.and("contain.text", "2037");
+			cy.get('[data-cy="document-archive-retention"]').should("contain.text", "2037");
+			cy.get('[data-cy="document-archive-retention-help-trigger"]').click();
+			cy.get('[data-cy="document-archive-retention-help-content"]').should(
+				"contain.text",
+				"C. com. art. L123-22",
+			);
+			cy.get('[data-cy="document-archive-retention-help-trigger"]').click();
 
 			// The verification genuinely RE-HASHES the bytes server-side (persistence.ts#verifyDocumentArchive)
 			// — never a static client-side verdict.

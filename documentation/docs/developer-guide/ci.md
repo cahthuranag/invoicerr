@@ -81,12 +81,14 @@ started from `e2e/cypress.config.ts` instead:
 - a URL stored on a row (PDP, SdI, the Portuguese AT webservice) is written by the spec itself,
   toward a fake on an ephemeral port;
 - a URL the backend reads from its environment at boot uses a fixed port and a variable set for the
-  e2e stack: `ADDRESS_AUTOCOMPLETE_URL` (Photon, port 19876, set in `cypress.yml`) and
-  `KSEF_TEST_API_URL` (KSeF test API, port 19877, set in `backend/.env.test`).
+  e2e stack: `ADDRESS_AUTOCOMPLETE_URL` (Photon, port 19876, set in `cypress.yml`),
+  `KSEF_TEST_API_URL` (KSeF test API, port 19877, set in `backend/.env.test`) and
+  `CHORUS_PRO_SANDBOX_URL` (both PISTE sandbox hosts, port 19878, set in `backend/.env.test`).
 
+The KSeF and Chorus Pro variables only repoint the test or sandbox environment: a channel connected
+in production always talks to the real authority, and a unit test next to each client guards that.
 The real round trip with each authority belongs in a `*.live.spec.ts` run by `compliance-live.yml`
-(see [Live Testing](./live-testing.md)). The Chorus Pro send test in `31-national-channels.cy.ts`
-still reaches the public PISTE sandbox and is the remaining exception.
+(see [Live Testing](./live-testing.md)).
 
 ## Release notes and the Discord announcement
 
@@ -162,6 +164,13 @@ run forever with nothing anyone could do about it, so it is reported but not gat
 gate to HIGH, or dropping `ignore-unfixed`, is a deliberate follow-up once the current baseline of
 findings is known and triaged, not something to do by just editing the `severity` input.
 :::
+
+## API latency
+
+`api-latency.yml` measures p50, p95 and p99 of every API route with k6 on a stack local to the
+runner, comments the comparison on pull requests labelled `perf` or touching `backend/`, and keeps a
+nightly history plotted on the [API latency](/api-latency) page. It never fails on a regression and
+never runs in the merge queue. See [API latency tracking](./api-latency.md).
 
 ## Lighthouse CI on the frontend
 

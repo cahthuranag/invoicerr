@@ -68,6 +68,7 @@ import type {
 import { isActionAvailable, numberingDisplayState, statusLabel } from "@/components/documents/types"
 import { type DocumentFormState, useDocumentForm } from "@/components/documents/use-document-form"
 import { useUnsavedChanges } from "@/components/documents/use-unsaved-changes"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -255,9 +256,14 @@ function DocumentDetailBody({ descriptor, instance, state, baseline, onDiscard }
         // an invoice never passed through the SdI is "not issued" in law) - never hidden, never a
         // one-time toast a reload would lose. See `hasImportTransmissionEvidence`'s own header for
         // exactly what counts as evidence.
-        <Alert variant="warning" data-cy="document-import-not-transmitted">
-          <AlertDescription>{t("documents.detail.importNotTransmitted")}</AlertDescription>
-        </Alert>
+        <ProseHelp
+          tone="warning"
+          title={t("documents.detail.importNotTransmittedTitle")}
+          dataCy="document-import-not-transmitted"
+          className="text-sm"
+        >
+          {t("documents.detail.importNotTransmitted")}
+        </ProseHelp>
       )}
 
       {liveInstance.lastArchiveError && (
@@ -369,9 +375,7 @@ function DocumentDetailBody({ descriptor, instance, state, baseline, onDiscard }
                   loading={state.runner.isRunning && state.runner.pendingAction === undefined}
                   disabled={!!saveAction.policyBlockedReason}
                   tooltip={
-                    saveAction.policyBlockedReason
-                      ? t("documents.form.actionBlockedByPolicy", { reason: saveAction.policyBlockedReason })
-                      : undefined
+                    saveAction.policyBlockedReason ? t("documents.form.actionBlockedTitle") : undefined
                   }
                   onClick={() => state.runner.handleAction(saveAction)}
                   dataCy="document-unsaved-save"
@@ -646,13 +650,11 @@ function DocumentDetailActions({
         <DropdownMenuContent align="end" className="min-w-56" data-cy="document-actions-menu-content">
           {secondary.map((action) => {
             const hint = transitionHint(t, descriptor, action, state.currentStatus)
-            const blocked = action.policyBlockedReason
-              ? t("documents.form.actionBlockedByPolicy", { reason: action.policyBlockedReason })
-              : undefined
+            const blocked = !!action.policyBlockedReason
             return (
               <DropdownMenuItem
                 key={action.id}
-                disabled={!!blocked}
+                disabled={blocked}
                 onSelect={() => state.runner.handleAction(action)}
                 data-cy={`document-action-${action.id}`}
               >
@@ -671,7 +673,7 @@ function DocumentDetailActions({
                       className="max-w-xs text-xs text-muted-foreground"
                       data-cy={`document-blocked-reason-${action.id}`}
                     >
-                      {blocked}
+                      {t("documents.form.actionBlockedTitle")}
                     </span>
                   )}
                 </div>

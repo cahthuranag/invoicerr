@@ -131,6 +131,12 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
+// Opens a ProseHelp's `?` and returns the popover, so an assertion reads the text a user actually sees.
+function openHelp(dataCy: string): HTMLElement {
+  fireEvent.click(screen.getByTestId(`${dataCy}-help-trigger`))
+  return screen.getByTestId(`${dataCy}-help-content`)
+}
+
 describe("Issuance — draft sent, the screen follows without reload (SSE mechanism)", () => {
   it("shows 'Sending' the moment send is clicked, then 'Sent' once the SSE nudge arrives", async () => {
     const descriptor: DocumentTypeDescriptor = {
@@ -424,10 +430,10 @@ describe("Correction — what the screen REALLY offers today (not a dedicated sc
 
     // The one action this record offers is blocked — it still takes the page's primary slot (a
     // visibly disabled rule rather than an empty header — see action-presentation.ts's
-    // `pickPrimaryAction`), its reason printed right under it.
+    // `pickPrimaryAction`), its reason behind the status line's help button.
     const saveDraftButton = await screen.findByTestId("document-action-save-draft")
     expect(saveDraftButton).toBeDisabled()
-    expect(screen.getByTestId("document-blocked-reason-save-draft")).toHaveTextContent("CGI art. 289, I.5")
+    expect(openHelp("document-blocked-reason-save-draft")).toHaveTextContent("CGI art. 289, I.5")
   })
   // MUTATION (proven, reverted): document-form.tsx — `disabled={!!action.policyBlockedReason}`
   // (the action button's own render) -> `disabled={false}`. RED: "document-action-save-draft" is no
@@ -814,7 +820,8 @@ describe("Correct — correction routes, by seller country", () => {
 
     // Issue #554: the header is the curated, translated explanation, never the backend's own raw
     // developer note sent as `limitation`.
-    const limitationParagraph = await screen.findByTestId("document-correction-limitation")
+    await screen.findByTestId("document-correction-limitation")
+    const limitationParagraph = openHelp("document-correction-limitation")
     expect(limitationParagraph).toHaveTextContent(translatedLimitationHeader)
     expect(limitationParagraph).not.toHaveTextContent(limitationText)
 
@@ -824,9 +831,7 @@ describe("Correct — correction routes, by seller country", () => {
     ).toHaveTextContent("Required by law")
     // Issue #554: the row shows the curated, translated explanation, never the catalog's own raw
     // `provenance.sourceText` (`frCitation`, mixed French/legal-quote research notes).
-    const requiredRowLabel = within(requiredRow).getByTestId(
-      "document-correction-route-INTERNAL_CREDIT_NOTE-label",
-    )
+    const requiredRowLabel = openHelp("document-correction-route-INTERNAL_CREDIT_NOTE-label")
     expect(requiredRowLabel).toHaveTextContent(frInternalCreditNoteExplanation)
     expect(requiredRowLabel).not.toHaveTextContent(frCitation)
     const chooseButton = within(requiredRow).getByTestId(
@@ -997,7 +1002,7 @@ describe("Correct — correction routes, by seller country", () => {
     const confirmPanel = await screen.findByTestId("document-correction-confirm-cancel")
     expect(confirmPanel).toHaveTextContent("cannot be undone")
     // Issue #554: same curated explanation here too, never the raw citation even on this screen.
-    const confirmCancelLabel = screen.getByTestId("document-correction-confirm-cancel-label")
+    const confirmCancelLabel = openHelp("document-correction-confirm-cancel-label")
     expect(confirmCancelLabel).toHaveTextContent(frCancelAndReplaceExplanation)
     expect(confirmCancelLabel).not.toHaveTextContent(cancelCitation)
     expect(ranCancel, "no cancel ran yet — only the confirmation panel opened").toBe(false)

@@ -144,7 +144,7 @@
  *   rate > 0  → 'S' (Standard rated)
  *   rate = 0  → 'Z' (Zero rated)
  *
- * A line whose rate could not be resolved at all (compute-totals.ts's own "no usable VAT rate —
+ * A line whose rate could not be resolved at all (compute-totals.ts's own "no usable VAT rate,
  * counted in net only" warning path) makes BT-151 UNANSWERABLE — this bridge REFUSES to build rather
  * than guess (`SemanticBuildError`), the same discipline the old code's own removed
  * `buildEInvoice` held for a missing `vatCategory` column.

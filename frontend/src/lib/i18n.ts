@@ -6,6 +6,7 @@ import {
   arSA,
   arTN,
   cs,
+  da,
   de,
   deAT,
   enAU,
@@ -20,11 +21,18 @@ import {
   fr,
   frCA,
   frCH,
+  he,
   it,
   itCH,
+  ja,
+  ko,
   nl,
   nlBE,
   pl,
+  ptBR,
+  ru,
+  sv,
+  uk,
 } from "date-fns/locale"
 
 import LanguageDetector from "i18next-browser-languagedetector"
@@ -165,61 +173,45 @@ i18n.on("languageChanged", syncDocumentLanguage)
 // apply once more here to cover that race instead of depending on event-registration order.
 syncDocumentLanguage()
 
+// Supported languages and their regional variants, plus every shipped catalog: i18next adopts a
+// detected code verbatim when a catalog exists for it, even outside `supportedLngs`.
+const DATE_FNS_LOCALES = new Map<string, Locale>([
+  ["ar", ar],
+  ["ar-DZ", arDZ],
+  ["ar-EG", arEG],
+  ["ar-MA", arMA],
+  ["ar-SA", arSA],
+  ["ar-TN", arTN],
+  ["cs", cs],
+  ["de", de],
+  ["de-AT", deAT],
+  ["en-AU", enAU],
+  ["en-CA", enCA],
+  ["en-GB", enGB],
+  ["en-IE", enIE],
+  ["en-IN", enIN],
+  ["en-NZ", enNZ],
+  ["en-US", enUS],
+  ["en-ZA", enZA],
+  ["es", es],
+  ["fr", fr],
+  ["fr-CA", frCA],
+  ["fr-CH", frCH],
+  ["it", it],
+  ["it-CH", itCH],
+  ["nl", nl],
+  ["nl-BE", nlBE],
+  ["pl", pl],
+  ["da", da],
+  ["he", he],
+  ["ja", ja],
+  ["ko", ko],
+  ["pt-BR", ptBR],
+  ["ru", ru],
+  ["sv", sv],
+  ["uk", uk],
+])
+
 export function languageToLocale(lang: string): Locale {
-  switch (lang) {
-    case "ar":
-      return ar
-    case "ar-DZ":
-      return arDZ
-    case "ar-EG":
-      return arEG
-    case "ar-MA":
-      return arMA
-    case "ar-SA":
-      return arSA
-    case "ar-TN":
-      return arTN
-    case "cs":
-      return cs
-    case "de":
-      return de
-    case "de-AT":
-      return deAT
-    case "en-AU":
-      return enAU
-    case "en-CA":
-      return enCA
-    case "en-GB":
-      return enGB
-    case "en-IE":
-      return enIE
-    case "en-IN":
-      return enIN
-    case "en-NZ":
-      return enNZ
-    case "en-US":
-      return enUS
-    case "en-ZA":
-      return enZA
-    case "es":
-      return es
-    case "fr":
-      return fr
-    case "fr-CA":
-      return frCA
-    case "fr-CH":
-      return frCH
-    case "it":
-      return it
-    case "it-CH":
-      return itCH
-    case "nl":
-      return nl
-    case "nl-BE":
-      return nlBE
-    case "pl":
-      return pl
-    default:
-      return enUS
-  }
+  return DATE_FNS_LOCALES.get(lang) ?? enUS
 }

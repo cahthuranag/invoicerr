@@ -336,7 +336,7 @@ function resolveBuyerRole(
   if (!syntax.valid) {
     warnings.push(
       `Buyer VAT number "${buyerVat.value}" is not syntactically valid for ${buyerCountryCode} ` +
-        `(${syntax.reason ?? 'failed format check'}) — treating this buyer as B2C, never a silent B2B.`,
+        `(${syntax.reason ?? 'failed format check'}), so this buyer is treated as B2C, never a silent B2B.`,
     );
     return { role: 'B2C', validated: false };
   }
@@ -347,8 +347,8 @@ function resolveBuyerRole(
 
   warnings.push(
     `Buyer VAT number "${buyerVat.value}" has not been confirmed valid yet ` +
-      `(status: ${buyerVat.validationStatus ?? 'not checked'}) — treating this buyer as B2C until it ` +
-      'is verified, never a silent B2B.',
+      `(status: ${buyerVat.validationStatus ?? 'not checked'}), so this buyer is treated as B2C until ` +
+      'it is verified, never a silent B2B.',
   );
   return { role: 'B2C', validated: false };
 }
@@ -446,7 +446,7 @@ function applyDomesticTaxScheme(
       crossBorder: false,
       warnings: [
         `This company is marked "${input.seller.taxScheme}" (VAT-exempt), but no VAT/GST tax system ` +
-          `is known for its own country (${sellerCC}) in this catalog — this invoice was left at the ` +
+          `is known for its own country (${sellerCC}) in this catalog, so this invoice was left at the ` +
           'rate the user chose, since a small-business VAT exemption is not something this catalog ' +
           'can safely apply for a country with an unknown or non-VAT tax system, guessed either way.',
       ],
@@ -567,7 +567,7 @@ export function resolveInvoiceCrossBorderTax(
     const declared = extractSupplyType(row.supplyType);
     if (declared) return declared;
     warnings.push(
-      `Line ${index + 1} has no declared supply type (goods/services) — treated as SERVICES for ` +
+      `Line ${index + 1} has no declared supply type (goods/services), so it is treated as SERVICES for ` +
         'cross-border VAT purposes; declare it explicitly if this line is actually a delivery of goods.',
     );
     return 'SERVICES' as SupplyType;
@@ -674,7 +674,7 @@ export function resolveInvoiceCrossBorderTax(
     if (isTaxedAtSellerRate(index)) {
       warnings.push(
         `Line ${index + 1}'s chosen VAT rate ("${stored}") is not one of ${sellerCC}'s known VAT ` +
-          `rates — this cross-border B2C line is taxed in ${sellerCC}, at ${sellerCC}'s own standard ` +
+          `rates, so this cross-border B2C line is taxed in ${sellerCC}, at ${sellerCC}'s own standard ` +
           'rate instead, since there is no known rate on this invoice to honour.',
       );
     }
@@ -705,7 +705,7 @@ export function resolveInvoiceCrossBorderTax(
         `This invoice is an intra-Community distance sale taxed in ${buyerCC} (EU One-Stop-Shop, ` +
           `Directive 2006/112/EC art. 33(a)), so ${buyerCC}'s STANDARD VAT rate (${destinationRate}%) ` +
           `was applied. ${buyerCC}'s own reduced rates are not modelled here and an invoice line ` +
-          'carries nothing that says which products they cover — check the destination rate yourself ' +
+          'carries nothing that says which products they cover. Check the destination rate yourself ' +
           'if what you are selling is reduced-rated there, or this invoice over-charges the customer.',
       );
     }

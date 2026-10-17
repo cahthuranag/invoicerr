@@ -1,10 +1,11 @@
 import { Check, Ellipsis } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
-import { type ComponentProps, type ReactNode, useCallback, useEffect, useRef, useState } from "react"
+import { type ComponentProps, type ReactNode, useCallback, useEffect, useId, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { FieldHelp } from "@/components/ui/field-help"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,8 @@ import { cn } from "@/lib/utils"
 interface SettingsPageProps {
   title: ReactNode
   description?: ReactNode
+  /** A longer explanation, behind a `?` after the title. */
+  help?: ReactNode
   /** The page's own header action (a filled button only when the whole tab has no other primary). */
   actions?: ReactNode
   dataCy?: string
@@ -50,6 +53,7 @@ interface SettingsPageProps {
 export function SettingsPage({
   title,
   description,
+  help,
   actions,
   dataCy,
   className,
@@ -59,7 +63,14 @@ export function SettingsPage({
     <div className={cn("grid gap-6", className)} data-cy={dataCy}>
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div className="min-w-0 flex-1">
-          <h1 className="font-heading text-xl font-semibold tracking-tight text-balance">{title}</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-heading text-xl font-semibold tracking-tight text-balance">{title}</h1>
+            {help && (
+              <TitleHelp title={title} dataCy={dataCy}>
+                {help}
+              </TitleHelp>
+            )}
+          </div>
           {description && (
             <p className="mt-1 max-w-prose text-sm text-muted-foreground text-pretty">{description}</p>
           )}
@@ -71,9 +82,26 @@ export function SettingsPage({
   )
 }
 
+function TitleHelp({ title, dataCy, children }: { title: ReactNode; dataCy?: string; children: ReactNode }) {
+  const id = useId()
+  return (
+    <FieldHelp
+      id={id}
+      label={typeof title === "string" ? title : undefined}
+      dataCy={dataCy ? `${dataCy}-help` : undefined}
+      describeTrigger
+      className="font-normal"
+    >
+      {children}
+    </FieldHelp>
+  )
+}
+
 interface SettingsSectionProps {
   title?: ReactNode
   description?: ReactNode
+  /** A longer explanation, behind a `?` after the title. */
+  help?: ReactNode
   /** Right-aligned companion of the title — a status chip, a small control. */
   aside?: ReactNode
   /** The section's own actions, drawn under a hairline: use `SettingsFormFooter` for a form. */
@@ -90,6 +118,7 @@ interface SettingsSectionProps {
 export function SettingsSection({
   title,
   description,
+  help,
   aside,
   footer,
   tone = "default",
@@ -121,6 +150,11 @@ export function SettingsSection({
                 )}
               >
                 {title}
+                {help && (
+                  <TitleHelp title={title} dataCy={dataCy}>
+                    {help}
+                  </TitleHelp>
+                )}
               </CardTitle>
             )}
             {description && <CardDescription className="text-pretty">{description}</CardDescription>}
@@ -142,12 +176,14 @@ export function SettingsSection({
 export function SettingsFieldGroup({
   legend,
   description,
+  help,
   dataCy,
   className,
   children,
 }: {
   legend: ReactNode
   description?: ReactNode
+  help?: ReactNode
   dataCy?: string
   className?: string
   children: ReactNode
@@ -155,9 +191,16 @@ export function SettingsFieldGroup({
   return (
     <fieldset className={cn("grid gap-4 border-t pt-4", className)} data-cy={dataCy}>
       <div className="grid gap-1">
-        <legend className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {legend}
-        </legend>
+        <div className="flex items-center gap-1">
+          <legend className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {legend}
+          </legend>
+          {help && (
+            <TitleHelp title={legend} dataCy={dataCy}>
+              {help}
+            </TitleHelp>
+          )}
+        </div>
         {description && <p className="text-xs text-muted-foreground text-pretty">{description}</p>}
       </div>
       {children}

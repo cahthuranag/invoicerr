@@ -146,9 +146,11 @@ describe("Country-mandated channel — France mandates PDP for invoices issued s
 
 	it("chosen transport = pdp (the mandated channel) but NOT CONNECTED → the same named refusal, never persisted", () => {
 		cy.visit("/settings/company");
-		cy.get('[data-cy="company-invoice-transport-select"]', { timeout: 15000 }).click();
-		cy.get('[data-cy="company-invoice-transport-options"]', { timeout: 10000 }).should("be.visible");
-		cy.get('[data-cy="company-invoice-transport-option-pdp"]').click();
+		cy.get('[data-cy="company-invoice-transport-select"]', { timeout: 15000 }).should("exist");
+		cy.openSelect(
+			'[data-cy="company-invoice-transport-select"]',
+			'[data-cy="company-invoice-transport-option-pdp"]',
+		);
 		cy.get('[data-cy="company-submit-btn"]').click();
 		cy.wait(2000);
 

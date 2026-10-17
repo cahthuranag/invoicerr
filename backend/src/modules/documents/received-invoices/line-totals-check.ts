@@ -90,8 +90,8 @@ export function checkReceivedInvoiceLineTotals(data: Record<string, unknown>): s
 
     warnings.push(
       `Line total mismatch (${label}): the ${totals.lines.length} line(s) sum to ${fmt(computedMinor, currency)} ` +
-        `but the document states ${fmt(statedMinor, currency)} — a difference of ${fmt(deltaMinor, currency)}, ` +
-        `beyond the ${fmt(tolerance, currency)} rounding tolerance for this many line(s). Kept as entered — ` +
+        `but the document states ${fmt(statedMinor, currency)}, a difference of ${fmt(deltaMinor, currency)}, ` +
+        `beyond the ${fmt(tolerance, currency)} rounding tolerance for this many line(s). Kept as entered: ` +
         'this is the supplier’s own document, not recomputed.',
     );
   }

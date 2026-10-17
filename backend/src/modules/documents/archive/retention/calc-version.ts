@@ -26,6 +26,8 @@
  *    `resolved.map(r => r.rule)` is the same list as `rules` whenever nothing needed to be dropped for
  *    a missing issue date, so the two strings are character-for-character equal.
  *  - The "no rule declared for this country" case is identical text in both.
+ *  - The wording has since been reworded (a colon in place of the dash, "so no duration is
+ *    invented"), for every row written after that change, independently of the algorithm.
  *
  *  What differs is which rule WINS: old picks `rules.reduce(max by .years)`; new picks
  *  `resolved.reduce(max by computed .until)`. These CAN disagree in principle (the new file's own

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDocumentArchives, useVerifyDocumentArchive } from "@/hooks/queries"
 import { cn } from "@/lib/utils"
@@ -68,28 +69,28 @@ function DocumentArchiveRow({ typeId, documentId, archive }: DocumentArchiveRowP
         </span>
       </div>
 
-      <p className="text-xs text-muted-foreground" data-cy="document-archive-retention">
-        {archive.retentionUntil
-          ? t("documents.archive.retentionUntil", {
-              date: new Date(archive.retentionUntil).toLocaleDateString(),
-              basis: archive.retentionBasis,
-            })
-          : t("documents.archive.retentionNone", { basis: archive.retentionBasis })}
-      </p>
+      <ProseHelp
+        title={
+          archive.retentionUntil
+            ? t("documents.archive.retainUntil", {
+                date: new Date(archive.retentionUntil).toLocaleDateString(),
+              })
+            : t("documents.archive.noRetention")
+        }
+        dataCy="document-archive-retention"
+      >
+        {archive.retentionBasis}
+      </ProseHelp>
 
       {isRetentionCalcStale(archive) && (
-        <p
-          className="rounded bg-warning p-2 text-xs text-warning-foreground"
-          data-cy="document-archive-retention-stale"
+        // No date in the explanation: the only date this row holds is the suspect one.
+        <ProseHelp
+          tone="warning"
+          title={t("documents.archive.retentionStaleTitle")}
+          dataCy="document-archive-retention-stale"
         >
-          {/* No date is interpolated on purpose. The only date this row holds IS the suspect one,
-              already rendered just above — repeating it inside a sentence that says "keep it at
-              least until …" would name the too-early value as the safe floor, which is the exact
-              mistake the notice exists to warn about. Nothing here can compute the corrected date:
-              that would mean recomputing the row, which is refused (see the backend's
-              `archive/retention/calc-version.ts`). */}
           {t("documents.archive.retentionStale")}
-        </p>
+        </ProseHelp>
       )}
 
       <div className="flex flex-wrap items-center gap-2">

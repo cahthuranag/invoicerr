@@ -109,7 +109,7 @@ function describeLabel(provenance: LegalProvenance | UnverifiedProvenance): stri
   if (provenance.kind === 'legal') {
     return `"${provenance.sourceText}" (checked ${provenance.sourceCheckedAt})`;
   }
-  return `unverified — ${provenance.resolutionNote}`;
+  return `unverified: ${provenance.resolutionNote}`;
 }
 
 /**

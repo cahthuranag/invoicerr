@@ -39,11 +39,11 @@ describe('resolveCorrectionRoutesForCountry', () => {
     expect(route.implemented).toBe(true);
   });
 
-  it('an unverified route carries a plain "unverified — <note>" label, never a fabricated citation', () => {
+  it('an unverified route carries a plain "unverified: <note>" label, never a fabricated citation', () => {
     const decision = resolveCorrectionRoutesForCountry('FR')!;
     const route = decision.routes.find((r) => r.routeId === 'COUNTERPARTY_OBJECTION')!;
     expect(route.status).toBe('unverified');
-    expect(route.label).toMatch(/^unverified — /);
+    expect(route.label).toMatch(/^unverified: /);
   });
 
   it('every route across all five shipped countries is implemented=false EXCEPT INTERNAL_CREDIT_NOTE (always), CANCEL_AND_REPLACE (country-aware) and CORRECTIVE_INVOICE (Poland only) — the hard, honest mapping', () => {

@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { Wallet } from "lucide-react"
 
 import { decimalsFor, fromMinor } from "@/components/documents/totals-calculator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -75,11 +75,14 @@ export default function CashedRevenueSettings() {
       dataCy="cashed-revenue-section"
     >
       <SettingsSection dataCy="cashed-revenue-controls-card" contentClassName="grid gap-4">
-        <Alert variant="warning" data-cy="cashed-revenue-disclaimer">
-          <AlertDescription>
-            {report?.disclaimer ?? t("settings.cashedRevenue.disclaimerFallback")}
-          </AlertDescription>
-        </Alert>
+        <ProseHelp
+          tone="warning"
+          title={t("settings.cashedRevenue.disclaimerTitle")}
+          dataCy="cashed-revenue-disclaimer"
+          className="text-sm"
+        >
+          {report?.disclaimer ?? t("settings.cashedRevenue.disclaimerFallback")}
+        </ProseHelp>
 
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1.5">

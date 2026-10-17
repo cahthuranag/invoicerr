@@ -202,7 +202,7 @@ export function computeTotals(
       const lineNumber = lineIndex + 1
       const noUsableRateWarning =
         t?.("documents.totals.warnings.noUsableVatRate", { line: lineNumber }) ??
-        `line ${lineNumber} has no usable VAT rate — counted in net only`
+        `line ${lineNumber} has no usable VAT rate, counted in net only`
       if (rateValue !== undefined && rateValue !== null && rateValue !== "") {
         const resolved = resolveVatRatePercent(String(rateValue), vatRateOptions)
         if (resolved !== null) {

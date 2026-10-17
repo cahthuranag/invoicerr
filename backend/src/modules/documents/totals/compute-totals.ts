@@ -94,7 +94,7 @@ export interface ComputeTotalsOptions {
  * ## VAT rate extraction
  * - The VAT rate comes from a subfield of kind 'select' whose key contains 'vat' (case-insensitive)
  *   OR whose options resemble numbers (first option's value is numeric or percentage-like).
- * - Missing or non-numeric rate → counted in net only, with a warning: `line <index> has no usable VAT rate — counted in net only`.
+ * - Missing or non-numeric rate → counted in net only, with a warning: `line <index> has no usable VAT rate, counted in net only`.
  * - A line without a usable rate contributes to netMinor but NOT to any vatBreakdown entry.
  *
  * ## Currency detection
@@ -126,7 +126,7 @@ export function computeDocumentTotals(
   }
 
   if (!currency) {
-    warnings.push('Document currency not found — using default (2 decimals).');
+    warnings.push('Document currency not found, using the default (2 decimals).');
   }
 
   // === Find array fields with both 'money' and 'number' subfields ===
@@ -192,7 +192,7 @@ export function computeDocumentTotals(
         } else if (qtyValue !== undefined && qtyValue !== null && qtyValue !== '') {
           warnings.push(
             `line ${globalLineNumber} has a non-numeric quantity ` +
-              `(received ${JSON.stringify(qtyValue)}) — counted as 1`,
+              `(received ${JSON.stringify(qtyValue)}), counted as 1`,
           );
         }
       }
@@ -206,7 +206,7 @@ export function computeDocumentTotals(
       } else if (priceValue !== undefined && priceValue !== null && priceValue !== '') {
         warnings.push(
           `line ${globalLineNumber} has a non-numeric unit price ` +
-            `(received ${JSON.stringify(priceValue)}) — counted as 0`,
+            `(received ${JSON.stringify(priceValue)}), counted as 0`,
         );
       }
 
@@ -377,7 +377,7 @@ function extractVatRate(
 
   const value = row[vatField.key];
   if (value === undefined || value === null || value === '') {
-    warnings.push(`line ${lineNumber} has no usable VAT rate — counted in net only`);
+    warnings.push(`line ${lineNumber} has no usable VAT rate, counted in net only`);
     return null;
   }
 
@@ -400,7 +400,7 @@ function extractVatRate(
   // percentage itself, e.g. "20"). Parsed exactly as this function always has.
   const parsed = Number(value);
   if (Number.isNaN(parsed)) {
-    warnings.push(`line ${lineNumber} has no usable VAT rate — counted in net only`);
+    warnings.push(`line ${lineNumber} has no usable VAT rate, counted in net only`);
     return null;
   }
 

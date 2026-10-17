@@ -88,13 +88,13 @@ function numberFormatCopy(typeId: AtcudTypeId, t: ReturnType<typeof useTranslati
     return {
       dataCyPrefix: "atcud-credit-note-number-format",
       title: t("settings.atcud.creditNoteNumberFormat.title"),
-      description: t("settings.atcud.creditNoteNumberFormat.description"),
+      help: t("settings.atcud.creditNoteNumberFormat.description"),
     }
   }
   return {
     dataCyPrefix: "atcud-number-format",
     title: t("settings.atcud.numberFormat.title"),
-    description: t("settings.atcud.numberFormat.description"),
+    help: t("settings.atcud.numberFormat.description"),
   }
 }
 
@@ -119,7 +119,7 @@ function NumberFormatCard({
   const series = format ? seriesOf(format.nextDisplayNumber) : null
 
   return (
-    <SettingsSection title={copy.title} description={copy.description} dataCy={`${copy.dataCyPrefix}-card`}>
+    <SettingsSection title={copy.title} help={copy.help} dataCy={`${copy.dataCyPrefix}-card`}>
       {format && (
         <dl className="grid gap-2 text-sm sm:grid-cols-[max-content_1fr] sm:gap-x-6">
           <dt className="text-muted-foreground">{t("settings.atcud.numberFormat.label")}</dt>
@@ -252,7 +252,7 @@ export default function AtcudSettings() {
   return (
     <SettingsPage
       title={t("settings.atcud.title", "ATCUD (Portugal)")}
-      description={t(
+      help={t(
         "settings.atcud.descriptionDocuments",
         "Portaria n.º 195/2020 requires every Portuguese invoice and credit note to carry an ATCUD, " +
           "obtained per series from the AT (Portal das Finanças), BEFORE any document in that series is issued.",
@@ -265,7 +265,7 @@ export default function AtcudSettings() {
 
       <SettingsSection
         title={t("settings.atcud.series.addTitle", "Register a series validation code")}
-        description={t(
+        help={t(
           "settings.atcud.series.addDescriptionTyped",
           "The AT issues one code per series and document type: register invoice (FT) and credit note " +
             '(NC) series separately. The series identifier is the part of the number BEFORE the "/", ' +

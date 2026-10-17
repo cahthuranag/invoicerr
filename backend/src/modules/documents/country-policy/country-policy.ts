@@ -151,7 +151,7 @@ function decideFromRules(
       rule.provenanceKind === 'legal' && rule.sourceText
         ? ` (${rule.sourceText})`
         : rule.resolutionNote
-          ? ` (unverified — ${rule.resolutionNote})`
+          ? ` (unverified: ${rule.resolutionNote})`
           : '';
     return {
       allowed: false,

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 
 import { useDocumentSettlement, usePaymentMethods } from "@/hooks/queries"
 import { Badge } from "@/components/ui/badge"
+import { ProseHelp } from "@/components/ui/prose-help"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
@@ -268,13 +269,13 @@ export function DocumentSettlementSection({ typeId, documentId }: DocumentSettle
               </ul>
             )}
             {warnings.length > 0 && (
-              <div className="space-y-1 rounded-md bg-warning p-2" data-cy="document-settlement-warnings">
-                {warnings.map((warning) => (
-                  <p key={warning} className="text-xs text-warning-foreground">
-                    {warning}
-                  </p>
-                ))}
-              </div>
+              <ProseHelp
+                tone="warning"
+                title={t("documents.settlement.warningsTitle")}
+                dataCy="document-settlement-warnings"
+              >
+                {warnings}
+              </ProseHelp>
             )}
           </div>
         ) : null}

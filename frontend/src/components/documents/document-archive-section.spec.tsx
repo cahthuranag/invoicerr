@@ -1,24 +1,10 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { DocumentArchiveSection, isRetentionCalcStale } from "./document-archive-section"
 import type { DocumentArchive } from "./types"
 
-/**
- * `retentionCalcVersion` is the discriminator that addresses "archives already written keep a
- * retention date that is too early" (2026-09-13): NULL on any row written before
- * the backend started recording which version of `compute-retention.ts` produced it — which INCLUDES
- * every row from before the origin-axis fix (`cf2e7323`) that counted every duration from the
- * archiving instant instead of the statute's own origin (up to a year too EARLY). `retentionBasis`'s
- * own TEXT was checked first and found NOT reliably distinguishable between the two algorithms (see
- * the backend's `archive/retention/calc-version.ts` for the byte-for-byte comparison) — this column,
- * and the pure predicate below, are what the UI actually keys its warning off of.
- *
- * `@/hooks/queries` is mocked wholesale (not `fetch`) — this suite is about what
- * `DocumentArchiveSection` renders for a given archive shape, not about the query layer underneath
- * it, and `useVerifyDocumentArchive` is a mutation this component always calls regardless of the
- * scenario under test.
- */
+// `retentionCalcVersion` is null on rows written before the retention origin fix; those dates can be too early.
 vi.mock("@/hooks/queries", () => ({
   useDocumentArchives: vi.fn(),
   useVerifyDocumentArchive: vi.fn(),
@@ -43,7 +29,7 @@ function archive(overrides: Partial<DocumentArchive> = {}): DocumentArchive {
   }
 }
 
-describe("isRetentionCalcStale — pure", () => {
+describe("isRetentionCalcStale", () => {
   it("flags an archive written by the OLD code — no retentionCalcVersion was ever recorded for it", () => {
     expect(isRetentionCalcStale(archive({ retentionCalcVersion: null }))).toBe(true)
   })
@@ -57,7 +43,7 @@ describe("isRetentionCalcStale — pure", () => {
   })
 })
 
-describe("<DocumentArchiveSection> — real render", () => {
+describe("<DocumentArchiveSection>", () => {
   beforeEach(() => {
     mockedUseVerifyDocumentArchive.mockReturnValue({
       mutate: vi.fn(),
@@ -66,7 +52,7 @@ describe("<DocumentArchiveSection> — real render", () => {
     } as unknown as ReturnType<typeof useVerifyDocumentArchive>)
   })
 
-  it("shows the stale notice for an archive computed by the OLD (pre-cf2e7323) code", () => {
+  it("shows a one-line stale status for an archive computed by the OLD code, the reason behind its help", () => {
     mockedUseDocumentArchives.mockReturnValue({
       data: [archive({ id: "old-archive", retentionCalcVersion: null })],
       isLoading: false,
@@ -74,14 +60,15 @@ describe("<DocumentArchiveSection> — real render", () => {
 
     render(<DocumentArchiveSection typeId="invoice" documentId="doc-1" />)
 
-    // Never asserted against a locale-formatted date string (see `document-conformity-section.spec.tsx`
-    // for the same convention) — jsdom's date formatting depends on the runner's own locale/timezone.
-    expect(screen.getByTestId("document-archive-retention-stale")).toHaveTextContent(
-      "This date was calculated by an earlier version",
-    )
+    const status = screen.getByTestId("document-archive-retention-stale")
+    expect(status).toHaveClass("bg-warning")
+    expect(screen.getByText("This date may be too early")).toBeVisible()
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId("document-archive-retention-stale-help-trigger"))
+    expect(screen.getByRole("dialog")).toHaveTextContent("This date was calculated by an earlier version")
   })
 
-  it("shows NO stale notice for an archive computed by the current, version-tracked code", () => {
+  it("shows the retention date as a title and its legal basis only behind the help button", () => {
     mockedUseDocumentArchives.mockReturnValue({
       data: [archive({ id: "new-archive", retentionCalcVersion: 1 })],
       isLoading: false,
@@ -89,9 +76,30 @@ describe("<DocumentArchiveSection> — real render", () => {
 
     render(<DocumentArchiveSection typeId="invoice" documentId="doc-1" />)
 
-    // The ordinary retention line is still shown — only the warning is gated on the discriminator.
-    expect(screen.getByTestId("document-archive-retention")).toHaveTextContent("VAT 5y")
+    expect(screen.getByText(/^Retain until /)).toBeVisible()
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId("document-archive-retention-help-trigger"))
+    expect(screen.getByRole("dialog")).toHaveTextContent("VAT 5y (ustawa o VAT art. 112).")
     expect(screen.queryByTestId("document-archive-retention-stale")).not.toBeInTheDocument()
+  })
+
+  it("says no duration applies when no rule is declared, with the reason behind the help button", () => {
+    mockedUseDocumentArchives.mockReturnValue({
+      data: [
+        archive({
+          id: "no-rule-archive",
+          retentionUntil: null,
+          retentionBasis: "No retention rule declared for this country, so no duration is invented.",
+        }),
+      ],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useDocumentArchives>)
+
+    render(<DocumentArchiveSection typeId="invoice" documentId="doc-1" />)
+
+    expect(screen.getByText("No retention duration applies")).toBeVisible()
+    fireEvent.click(screen.getByTestId("document-archive-retention-help-trigger"))
+    expect(screen.getByRole("dialog")).toHaveTextContent("No retention rule declared for this country")
   })
 
   it("shows NO stale notice for a country with no declared retention rule, even with no calc version", () => {

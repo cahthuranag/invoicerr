@@ -247,8 +247,14 @@ describe("Issue #516 - dated consolidation, revenue basis, cashed-revenue view",
 		cy.visit("/settings/cashedRevenue");
 		cy.get('[data-cy="cashed-revenue-disclaimer"]', { timeout: 15000 }).should(
 			"contain.text",
+			"not your official declaration",
+		);
+		cy.get('[data-cy="cashed-revenue-disclaimer-help-trigger"]').click();
+		cy.get('[data-cy="cashed-revenue-disclaimer-help-content"]').should(
+			"contain.text",
 			"not the official declaration",
 		);
+		cy.get('[data-cy="cashed-revenue-disclaimer-help-trigger"]').click();
 
 		cy.openSelect(
 			'[data-cy="cashed-revenue-granularity-select"]',

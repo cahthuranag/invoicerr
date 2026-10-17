@@ -201,9 +201,9 @@ export default function SigningCertificatesSettings() {
   return (
     <SettingsPage
       title={t("settings.signing.title", "Signing Certificates")}
-      description={t(
+      help={t(
         "settings.signing.description",
-        "Upload a PKCS#12 (.pfx / .p12) signing certificate to have this company's document PDFs signed PAdES. This is an optional capability — nothing in this product requires a signed document.",
+        "Upload a PKCS#12 (.pfx / .p12) signing certificate to have this company's document PDFs signed PAdES. This is an optional capability: nothing in this product requires a signed document.",
       )}
       dataCy="signing-certificates-section"
     >

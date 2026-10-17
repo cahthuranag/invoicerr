@@ -53,7 +53,7 @@ const PROVIDER_LABELS: Record<string, string> = { pdp: "PDP", ksef: "KSeF", sdi:
  * amber "suggested" look is replaced by this same warning-weight banner naming the channel and what
  * is currently configured instead (never `variant="destructive"`, same owner review as
  * `channels.settings.tsx`'s own `ChannelBanner`: this is not an error the user caused), one plain
- * sentence with the statute quote collapsed behind `ChannelBannerSource`'s "Read the source" rather
+ * sentence with the statute quote behind `ChannelBannerSource`'s `?` rather
  * than spliced into the sentence itself. This is the state the invoice-transport picker itself
  * (`company.settings.tsx`) has no room to show inline. A mandate whose `mandatedFrom` is still in the
  * future changes NOTHING here, it stays a plain suggestion until its own date actually arrives,
@@ -81,7 +81,7 @@ export default function ChannelConnectPrompt({ className }: { className?: string
       // Same formatting as `channels.settings.tsx`'s own `ChannelBanner` (issue #543, owner review):
       // the reader's own language for the country and the date, the full legal-channel label rather
       // than a bare provider id, and the raw statute quote moved into `ChannelBannerSource`'s
-      // collapsed "Read the source" instead of spliced into the sentence itself.
+      // `?` instead of spliced into the sentence itself.
       const country = countryName(i18n.language, company?.countryCode || company?.country)
       const channel = legalChannelLabel(t, activeMandate.providerId)
       const date = formatMandateDate(i18n.language, activeMandate.mandatedFrom)

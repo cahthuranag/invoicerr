@@ -150,10 +150,10 @@ describe('buildInvoiceDashboardWidgetsWithConsolidation', () => {
 
     expect(widgets.find((w) => w.id === 'invoice:pending-total:consolidated')).toBeUndefined();
     expect(widgets.find((w) => w.id === 'invoice:pending-total:JPY')?.warnings).toEqual([
-      'No JPY→EUR rate is set — consolidated total omitted.',
+      'No JPY→EUR rate is set, so the consolidated total is omitted.',
     ]);
     expect(widgets.find((w) => w.id === 'invoice:pending-total:EUR')?.warnings).toEqual([
-      'No JPY→EUR rate is set — consolidated total omitted.',
+      'No JPY→EUR rate is set, so the consolidated total is omitted.',
     ]);
   });
 

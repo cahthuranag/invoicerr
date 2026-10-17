@@ -471,6 +471,9 @@ describe("Receiving invoices", () => {
 			// than a `.should('exist')` that would also pass for something CSS actually hid.
 			cy.get('[data-cy="document-line-total-warnings"]', { timeout: 10000 })
 				.scrollIntoView()
+				.should("be.visible");
+			cy.get('[data-cy="document-line-total-warnings-help-trigger"]').click();
+			cy.get('[data-cy="document-line-total-warnings-help-content"]')
 				.should("be.visible")
 				.and("contain.text", "gross / TTC");
 		});
@@ -484,7 +487,7 @@ describe("Receiving invoices", () => {
 			cy.openDocument(target!.id);
 
 			// Before editing: a single warning (gross/TTC, see the previous test).
-			cy.get('[data-cy="document-line-total-warnings"] p').should("have.length", 1);
+			cy.get('[data-cy="document-line-total-warnings-help"] > span').should("have.length", 1);
 			cy.get('input[name="lines.0.quantity"]').should("be.disabled");
 
 			// The deposited gross total is corrected to what the lines add up to (5 x 100 + 20 % = 600):
@@ -493,7 +496,7 @@ describe("Receiving invoices", () => {
 			cy.get('[data-cy="document-field-grossAmount-input"]').should("have.value", "600");
 						cy.get('[data-cy="document-action-receive"]').first().click();
 			cy.get("[data-sonner-toast]", { timeout: 10000 }).should("exist");
-			cy.get('[data-cy="document-line-total-warnings"] p', { timeout: 10000 }).should("have.length", 0);
+			cy.get('[data-cy="document-line-total-warnings"]', { timeout: 10000 }).should("not.exist");
 
 			cy.request<ReceivedInvoiceInstance>({
 				url: `${api}/api/documents/${target!.id}?typeId=received-invoice`,

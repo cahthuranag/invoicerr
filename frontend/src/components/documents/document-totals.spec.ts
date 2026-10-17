@@ -166,7 +166,7 @@ describe("computeDocumentTotals", () => {
       currency: "EUR",
       lines: [{ quantity: 1, unitPrice: 10, vatRate: "" }],
     })
-    expect(totals?.warnings).toEqual(["line 1 has no usable VAT rate — counted in net only"])
+    expect(totals?.warnings).toEqual(["line 1 has no usable VAT rate, counted in net only"])
   })
 
   it("translates that same warning through the given TFunction instead of the raw English fallback", () => {
@@ -228,7 +228,7 @@ describe("computeDocumentTotals", () => {
       currency: "EUR",
       lines: [{ quantity: 1, unitPrice: 100, vatRate: "de-standard" }],
     })
-    expect(totals?.warnings).toEqual(["line 1 has no usable VAT rate — counted in net only"])
+    expect(totals?.warnings).toEqual(["line 1 has no usable VAT rate, counted in net only"])
     expect(totals?.vatMinor).toBe(0)
   })
 

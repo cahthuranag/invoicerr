@@ -1318,7 +1318,11 @@ describe(`Full lifecycle — ${scenarioId}`, () => {
 				"Not established",
 			);
 			cy.get('[data-cy="document-correction-route-CANCEL_AND_REPLACE-button"]').should("be.disabled");
-			cy.get('[data-cy="document-correction-route-CANCEL_AND_REPLACE-reason"]').should("exist");
+			cy.get('[data-cy="document-correction-route-CANCEL_AND_REPLACE-label-help-trigger"]').click();
+			cy.get('[data-cy="document-correction-route-CANCEL_AND_REPLACE-label-help-content"]').should(
+				"contain.text",
+				"Not established for this country",
+			);
 		} else if (scenarioId === "pl-de") {
 			// Poland — CANCEL_AND_REPLACE is "required" by Poland's own law (choosable at the UI level —
 			// `isChoosable` only looks at status) but `cancel-policy.ts`'s own whitelist deliberately
