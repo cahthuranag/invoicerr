@@ -26,6 +26,7 @@ import { vi } from 'vitest';
 
 vi.mock('@/lib/auth', () => ({
   auth: { api: { getSession: vi.fn().mockResolvedValue(null) } },
+  sessionCookieName: async () => 'better-auth.session_token',
 }));
 
 vi.mock('better-auth/node', () => ({

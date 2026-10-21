@@ -17,6 +17,25 @@ Login is handled via the BetterAuth library (`backend/src/lib/auth.ts`), which s
 
 On login, a session cookie is created. `AuthGuard` reads it via `auth.api.getSession()` and attaches the resolved user to `request.user`.
 
+### Session cache
+
+Resolving a session costs a few database queries (the session, its user, and every company membership the `customSession` plugin adds), on every request. `AuthGuard` therefore keeps the resolved session in memory for `SESSION_CACHE_TTL_MS` (10 seconds by default, `0` turns it off), keyed on the session cookie's value. Requests authenticated with an API key are never cached.
+
+A cached session must never outlive a change to what it holds, on any API replica. `backend/src/lib/session-cache.ts` keeps that promise through Redis:
+
+- Every write that changes a session, a user, a membership, a role or a company name calls `sessionCache.invalidateUsers(userIds)` after it commits. That bumps one global sequence number in Redis and stamps each affected user with it.
+- A cache entry remembers the sequence number read *before* its session was loaded. Each cached request reads the user's stamp with a single `MGET`; an entry older than the stamp is dropped and the session is loaded again. Reading the number before the load means a change that commits while a session is being loaded is never hidden behind the entry it produced.
+- If Redis cannot be reached, or loses its keys, the cache is bypassed and every request loads its session: never a stale one.
+- The cache turns itself off, with an error in the log, unless Redis reports `maxmemory-policy noeviction`: a user's stamp evicted under memory pressure would silently undo an invalidation. The policy is read again on every reconnect.
+- An invalidation that cannot reach Redis is retried in the background, with backoff, for up to ten minutes. Until it lands, other replicas can still serve the old state from memory, for at most `SESSION_CACHE_TTL_MS`. That window only exists while the replica that made the change cannot reach Redis but the others can.
+- With `SESSION_CACHE_TTL_MS=0`, invalidations are skipped as well. Every replica must run with the same value: a replica with the cache on does not hear about changes made by one with it off.
+
+better-auth's own writes (sign-out, session revocation, password changes that revoke other sessions, profile and email changes, account deletion) are covered by `databaseHooks` in `backend/src/lib/auth.ts`. The session `update` hook ignores better-auth's expiry refresh, which only lengthens a session: a cached copy keeps the earlier expiry. Writes made directly through Prisma (company switch, role change, member removal, leaving a company, invitation, ownership transfer, company creation, rename and deletion, language preference, instance reset, demo reset) call the cache themselves.
+
+:::warning[New writes must invalidate]
+Any new code that writes `session`, `userCompany`, a user's profile, or a company's name must call `sessionCache.invalidateUsers` with every affected user once its transaction has committed, never inside it. `backend/src/lib/session-cache-invalidation.redis.spec.ts` holds one test per write: add yours there.
+:::
+
 ### OIDC redirect URI and PKCE
 
 The redirect URI to register at the identity provider is `/api/auth/callback/<providerId>` — `<OIDC_NAME>` (sanitized, defaulting to `oidc`) for the instance-wide provider below, or `c_<companyId>` for a per-company one. It used to be `/api/auth/oauth2/callback/<providerId>`, which no longer exists: the generic OIDC flow is served by BetterAuth's core social endpoints. An instance upgrading from an older version must update that URI at the provider, otherwise the provider rejects the redirect and OIDC login stops working.

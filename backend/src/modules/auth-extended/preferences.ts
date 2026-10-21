@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 
 import prisma from '@/prisma/prisma.service';
+import { sessionCache } from '@/lib/session-cache';
 import {
   RenderLanguage,
   SUPPORTED_RENDER_LANGUAGES,
@@ -53,5 +54,6 @@ export async function setUserLocale(
     data: { locale },
     select: { locale: true },
   });
+  await sessionCache.invalidateUsers([userId]);
   return updated.locale as RenderLanguage | null;
 }

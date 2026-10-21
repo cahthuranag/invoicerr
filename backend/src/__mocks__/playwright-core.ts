@@ -24,11 +24,12 @@ type MockPage = {
   setContent: Mock<(content: string, options?: unknown) => Promise<void>>;
   pdf: Mock<(options?: unknown) => Promise<Buffer>>;
   close: Mock<() => Promise<void>>;
+  isClosed: Mock<() => boolean>;
 };
 
 type MockBrowser = {
   isConnected: Mock<() => boolean>;
-  newPage: Mock<() => Promise<MockPage>>;
+  newPage: Mock<(options?: unknown) => Promise<MockPage>>;
   close: Mock<() => Promise<void>>;
 };
 
@@ -56,6 +57,7 @@ let pdfDelayMs = 0;
 let nextPdfError: Error | null = null;
 
 function createPage(): MockPage {
+  let closed = false;
   const page: MockPage = {
     setContent: vi.fn().mockResolvedValue(undefined),
     pdf: vi.fn().mockImplementation(async () => {
@@ -70,8 +72,11 @@ function createPage(): MockPage {
       return Buffer.from('%PDF-1.4 mock document');
     }),
     close: vi.fn().mockImplementation(async () => {
+      if (closed) return;
+      closed = true;
       openPages--;
     }),
+    isClosed: vi.fn(() => closed),
   };
   pages.push(page);
   return page;

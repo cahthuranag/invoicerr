@@ -1,3 +1,4 @@
+import { sessionCache } from '@/lib/session-cache';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 
@@ -165,6 +166,7 @@ export class InvitationsService {
       throw error;
     }
 
+    await sessionCache.invalidateUsers([userId]);
     logger.info('Invitation code used', { category: 'invitation', details: { id: invitation.id, userId } });
 
     // An invitation can carry OWNER/ADMIN — see `billing/member-sync.ts`'s own header.

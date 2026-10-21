@@ -177,8 +177,79 @@ describe('renderPdf', () => {
 
     await Promise.all(Array.from({ length: 6 }, (_, i) => renderPdf(`<html>${i}</html>`)));
 
-    expect(mock.pages).toHaveLength(6);
+    expect(mock.pages).toHaveLength(2);
     expect(mock.maxOpenPages).toBe(2);
+  });
+
+  describe('page reuse', () => {
+    it('renders consecutive documents on the same page', async () => {
+      const { renderPdf, mock } = await load();
+
+      await renderPdf('<html>A</html>');
+      await renderPdf('<html>B</html>');
+      await renderPdf('<html>C</html>');
+
+      expect(mock.pages).toHaveLength(1);
+      expect(mock.pages[0].setContent).toHaveBeenCalledTimes(3);
+      expect(mock.pages[0].close).not.toHaveBeenCalled();
+    });
+
+    it('opens pages with JavaScript disabled, so one document cannot leave anything running for the next', async () => {
+      const { renderPdf, mock } = await load();
+
+      await renderPdf('<html>A</html>');
+
+      expect(mock.browsers[0].newPage).toHaveBeenCalledWith(
+        expect.objectContaining({ javaScriptEnabled: false }),
+      );
+    });
+
+    it('never reuses a page whose render failed', async () => {
+      const { renderPdf, mock } = await load();
+      mock.failNextPdf(new Error('boom'));
+
+      await expect(renderPdf('<html>A</html>')).rejects.toThrow('PDF rendering failed: boom');
+      await renderPdf('<html>B</html>');
+
+      expect(mock.pages).toHaveLength(2);
+      expect(mock.pages[0].close).toHaveBeenCalledTimes(1);
+      expect(mock.pages[1].setContent).toHaveBeenCalledWith('<html>B</html>', expect.anything());
+    });
+
+    it('retires a page after 200 renders', async () => {
+      const { renderPdf, mock } = await load();
+
+      for (let i = 0; i < 201; i++) await renderPdf(`<html>${i}</html>`);
+
+      expect(mock.pages).toHaveLength(2);
+      expect(mock.pages[0].setContent).toHaveBeenCalledTimes(200);
+      expect(mock.pages[0].close).toHaveBeenCalledTimes(1);
+      expect(mock.pages[1].setContent).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips an idle page that was closed behind its back', async () => {
+      const { renderPdf, mock } = await load();
+
+      await renderPdf('<html>A</html>');
+      await mock.pages[0].close();
+      await renderPdf('<html>B</html>');
+
+      expect(mock.pages).toHaveLength(2);
+      expect(mock.pages[1].setContent).toHaveBeenCalledWith('<html>B</html>', expect.anything());
+    });
+
+    it('never carries a page over to a relaunched browser', async () => {
+      const { renderPdf, mock } = await load();
+
+      await renderPdf('<html>A</html>');
+      mock.browsers[0].isConnected.mockReturnValue(false);
+      await renderPdf('<html>B</html>');
+
+      expect(mock.browsers).toHaveLength(2);
+      expect(mock.browsers[1].newPage).toHaveBeenCalledTimes(1);
+      expect(mock.pages[0].setContent).toHaveBeenCalledTimes(1);
+      expect(mock.pages[1].setContent).toHaveBeenCalledWith('<html>B</html>', expect.anything());
+    });
   });
 
   it('closes the page even when page.pdf() throws, and never closes the shared browser', async () => {

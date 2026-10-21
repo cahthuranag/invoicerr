@@ -338,6 +338,10 @@ comment for why this is not the Bitnami subchart). For a managed/HA Redis instea
 `redis.external.host` (and `redis.external.port` if not 6379) — no Redis resources render at all
 once that is set.
 
+:::info[Keep Redis on `noeviction`]
+Besides the document queues, every `api` replica reads a few small keys from Redis on each signed-in request to know whether its in-memory copy of the session is still current (`app.sessionCacheTtlMs`, 10 seconds by default, `"0"` to turn it off). A managed Redis must keep its default `noeviction` memory policy, which BullMQ already requires: a policy that evicts keys could drop the record of a sign-out or a removed membership before every replica has seen it.
+:::
+
 ## 5. Create the Secret
 
 ```bash
@@ -562,7 +566,9 @@ against a real cluster:
   (`playwright-core`, see `CLAUDE.md`'s "pdf-renderer-needs-chromium") — a much heavier one-off
   spike than either pod's steady-state footprint. The chart's default memory limits (768Mi for both
   `api` and `worker`) were sized to survive this in a real test; profile your own invoice volumes
-  and PDF complexity before shrinking them.
+  and PDF complexity before shrinking them. Each pod keeps up to `PDF_RENDER_CONCURRENCY` (4 by
+  default) Chromium pages open between renders, so its memory no longer drops back after each
+  render.
 - **`documents.persistence` is ReadWriteOnce, and that is a scheduling limit before it is a data
   one.** The `/data` PVC is rendered whenever *either* `archive.storage` or
   `documents.inbound.storage` is still `local` (`invoicerr.documentsVolumeNeeded`,

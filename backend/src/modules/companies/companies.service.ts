@@ -19,6 +19,7 @@ import {
 import { MailService } from '@/mail/mail.service';
 import { logger } from '@/logger/logger.service';
 import prisma from '@/prisma/prisma.service';
+import { sessionCache } from '@/lib/session-cache';
 
 /** How long a company must wait between two self-service exports (`exportCompanyData` below) —
  *  building one means rendering EVERY document the company holds through Chromium
@@ -72,6 +73,7 @@ export class CompaniesService {
       where: { id: sessionId },
       data: { activeCompanyId: companyId },
     });
+    await sessionCache.invalidateUsers([userId]);
 
     logger.info('Active company switched', { category: 'companies', details: { userId, companyId } });
 
@@ -111,6 +113,7 @@ export class CompaniesService {
       where: { userId_companyId: { userId: targetUserId, companyId } },
       data: { role },
     });
+    await sessionCache.invalidateUsers([targetUserId]);
     // Seat COUNT is unaffected (the person was already counted) but Polar member ACCESS may need to
     // gain or lose them — see `billing/member-sync.ts`'s own header (a no-op entirely when billing is
     // disabled, never throws).
@@ -141,6 +144,7 @@ export class CompaniesService {
     await prisma.userCompany.delete({
       where: { userId_companyId: { userId: targetUserId, companyId } },
     });
+    await sessionCache.invalidateUsers([targetUserId]);
     // One fewer seat, freed automatically — the row (and whatever desk it held) is just gone, nothing
     // left to sync explicitly (see `billing/seat-sync.ts`'s own header).
     // The removed row is already gone by this point, so this reads as "no membership" and removes
@@ -170,17 +174,12 @@ export class CompaniesService {
     await prisma.userCompany.delete({
       where: { userId_companyId: { userId, companyId } },
     });
+    await sessionCache.invalidateUsers([userId]);
     // Same free-seat / Polar-member cleanup as `removeMember` above — the row is gone either way,
     // regardless of who initiated its removal.
     await syncCompanyMemberOnMembershipChange(companyId, userId);
 
-    // Deliberately no explicit write to any `Session.activeCompanyId` here — the exact same choice
-    // `billing/deletion.ts#deleteCompanyPermanentlyNow` already makes for the harsher "company
-    // deleted" case. `lib/auth.ts`'s own `customSession` plugin recomputes `activeCompanyId` from
-    // this user's CURRENT memberships on every session read, falling back to another one (or `null`)
-    // the instant the stored value no longer resolves — so there is no stale value to clean up here,
-    // only a stale CLIENT-side cache of an earlier session read (the frontend's own concern, not
-    // this service's).
+    // No `activeCompanyId` write: `customSession` falls back to another membership on the next load.
     logger.info('Member left company', { category: 'companies', details: { companyId, userId } });
 
     return { success: true };

@@ -56,6 +56,7 @@ let nextId: number;
 
 const prismaMock = {
   companySubscription: { findUnique: async () => subscriptionRow },
+  userCompany: { findMany: async () => [] },
   webhook: { deleteMany: async () => ({ count: 0 }) },
   company: {
     delete: async ({ where }: { where: { id: string } }) => {

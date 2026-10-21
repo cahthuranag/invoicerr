@@ -75,6 +75,19 @@ every caller says which copy it is building:
 A PDF already archived with a status line printed on it is never touched retroactively: its bytes,
 `contentHash` and any e-signature bound to it depend on staying exactly as delivered.
 
+### The Chromium page behind a render
+
+`rendering/render-pdf.ts` turns the HTML into a PDF in one shared headless Chromium. Up to
+`PDF_RENDER_CONCURRENCY` renders run at once, and each page is reused for up to 200 renders
+instead of being opened and closed every time; a page whose render failed, or that belongs to a
+browser since relaunched, is closed instead.
+
+:::warning[JavaScript is disabled in rendered documents]
+Pages are opened with JavaScript off, so no script, timer or global from one document can survive
+into the next one on the same page. A `<script>` in a document template never runs: everything a
+PDF shows has to come from the HTML and CSS themselves.
+:::
+
 ## API documentation
 
 The backend exposes a live Swagger/OpenAPI UI at `/api/docs` (JSON spec at `/api/docs-json`), generated from `@nestjs/swagger` decorators on each controller. See the [API Reference](api-reference.md) page.

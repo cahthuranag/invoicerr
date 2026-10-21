@@ -34,6 +34,7 @@ import { syncCompanyMemberOnMembershipChange } from '@/modules/billing/member-sy
 import { NO_FREE_SEAT_CODE, NoFreeSeatError, withSeatReservation } from '@/modules/billing/seat-sync';
 import { resolveUserLanguage } from '@/modules/documents/rendering/language/resolve-user-language';
 import prisma from '@/prisma/prisma.service';
+import { sessionCache } from '@/lib/session-cache';
 import { CurrentUser } from '@/types/user';
 
 import { CompanyOwnershipTransfer, CompanyRole, Prisma } from '../../../../prisma/generated/prisma/client';
@@ -407,6 +408,7 @@ export class TransferService {
     // Outside the transaction, same placement `invitations.service.ts#useInvitation`/
     // `companies.service.ts#changeMemberRole` already use: a Polar hiccup here must not roll back a
     // role change that already committed. Never throws (see `member-sync.ts`'s own header).
+    await sessionCache.invalidateUsers([transfer.toUserId, transfer.fromUserId]);
     await syncCompanyMemberOnMembershipChange(transfer.companyId, transfer.toUserId);
     await syncCompanyMemberOnMembershipChange(transfer.companyId, transfer.fromUserId);
 

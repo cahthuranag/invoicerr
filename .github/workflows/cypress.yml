@@ -143,7 +143,7 @@ jobs:
       DATABASE_URL: postgresql://postgres@localhost:5432/invoicerr_test?schema=public
     services:
       postgres:
-        image: postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+        image: postgres:16@sha256:a902560563d3a5661228585f53474c5065e7f273b21ffd77e555a8b5682c5690
         env:
           POSTGRES_USER: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
@@ -206,7 +206,7 @@ jobs:
       REDIS_URL: redis://localhost:6379
     services:
       redis:
-        image: redis:7@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85
+        image: redis:7@sha256:44960b3100c48159a66d28c18b0588c193492e25f7551d60e51dd464fc3eca5b
         ports:
           - "6379:6379"
         options: >-
@@ -215,7 +215,7 @@ jobs:
           --health-timeout 3s
           --health-retries 10
       postgres:
-        image: postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+        image: postgres:16@sha256:a902560563d3a5661228585f53474c5065e7f273b21ffd77e555a8b5682c5690
         env:
           POSTGRES_USER: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
@@ -228,7 +228,7 @@ jobs:
           --health-timeout 3s
           --health-retries 10
       mailpit:
-        image: axllent/mailpit@sha256:94f6b70c1436defae6799d9ac7ff0eeff9540465b842026d5cdb018f1c0234ea
+        image: axllent/mailpit@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
         ports:
           - "8025:8025"
           - "1025:1025"
@@ -330,6 +330,12 @@ jobs:
           ALLOW_PRIVATE_WEBHOOK_URLS: '1'
         run: cd backend && ./node_modules/.bin/vitest run --no-file-parallelism modules/documents/queue/__tests__ modules/webhooks/queue/__tests__
 
+      # Session cache invalidation, one test per write, against this job's real Redis and Postgres.
+      - name: Run session cache invalidation specs
+        env:
+          SESSION_CACHE_REDIS_TESTS: '1'
+        run: cd backend && ./node_modules/.bin/vitest run --no-file-parallelism src/lib/session-cache
+
       # The migration-vs-schema enum tripwire: deploys the FULL migration chain on
       # its own disposable database (never `invoicerr_test`, the one this job already migrated above)
       # and compares the resulting `pg_enum` against the generated client's enum exports, for every
@@ -392,7 +398,7 @@ jobs:
       ADDRESS_AUTOCOMPLETE_URL: http://127.0.0.1:19876
     services:
       postgres-test:
-        image: postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+        image: postgres:16@sha256:a902560563d3a5661228585f53474c5065e7f273b21ffd77e555a8b5682c5690
         env:
           POSTGRES_USER: invoicerr
           POSTGRES_HOST_AUTH_METHOD: trust
@@ -404,7 +410,7 @@ jobs:
           --health-interval 2s
           --health-retries 10
       mailpit:
-        image: axllent/mailpit@sha256:94f6b70c1436defae6799d9ac7ff0eeff9540465b842026d5cdb018f1c0234ea
+        image: axllent/mailpit@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
         ports:
           - "8025:8025"
           - "1025:1025"
@@ -414,7 +420,7 @@ jobs:
       # too. Without this service the Nest app fails to boot and every e2e times out on a hung /api.
       # redisConnection() defaults to localhost:6379, so no backend env change is needed.
       redis:
-        image: redis:7@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85
+        image: redis:7@sha256:44960b3100c48159a66d28c18b0588c193492e25f7551d60e51dd464fc3eca5b
         ports:
           - "6379:6379"
         options: >-
@@ -623,7 +629,7 @@ jobs:
       POLAR_SERVER: sandbox
     services:
       postgres-test:
-        image: postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+        image: postgres:16@sha256:a902560563d3a5661228585f53474c5065e7f273b21ffd77e555a8b5682c5690
         env:
           POSTGRES_USER: invoicerr
           POSTGRES_HOST_AUTH_METHOD: trust
@@ -635,12 +641,12 @@ jobs:
           --health-interval 2s
           --health-retries 10
       mailpit:
-        image: axllent/mailpit@sha256:94f6b70c1436defae6799d9ac7ff0eeff9540465b842026d5cdb018f1c0234ea
+        image: axllent/mailpit@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
         ports:
           - "8025:8025"
           - "1025:1025"
       redis:
-        image: redis:7@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85
+        image: redis:7@sha256:44960b3100c48159a66d28c18b0588c193492e25f7551d60e51dd464fc3eca5b
         ports:
           - "6379:6379"
         options: >-
@@ -739,7 +745,7 @@ jobs:
       DEMO_MODE: "true"
     services:
       postgres-test:
-        image: postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+        image: postgres:16@sha256:a902560563d3a5661228585f53474c5065e7f273b21ffd77e555a8b5682c5690
         env:
           POSTGRES_USER: invoicerr
           POSTGRES_HOST_AUTH_METHOD: trust
@@ -751,12 +757,12 @@ jobs:
           --health-interval 2s
           --health-retries 10
       mailpit:
-        image: axllent/mailpit@sha256:94f6b70c1436defae6799d9ac7ff0eeff9540465b842026d5cdb018f1c0234ea
+        image: axllent/mailpit@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
         ports:
           - "8025:8025"
           - "1025:1025"
       redis:
-        image: redis:7@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85
+        image: redis:7@sha256:44960b3100c48159a66d28c18b0588c193492e25f7551d60e51dd464fc3eca5b
         ports:
           - "6379:6379"
         options: >-

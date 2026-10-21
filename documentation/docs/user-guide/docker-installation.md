@@ -143,6 +143,8 @@ These are set under the `invoicerr` service's `environment` key.
 | `BETTER_AUTH_SECRET` | The one that's actually documented and recommended — any random string, e.g. `openssl rand -hex 32`. Leaving it (and `JWT_SECRET` below) unset falls back to a known default, which the app flags as insecure. |
 | `JWT_SECRET` | A **legacy fallback only** — better-auth reads `BETTER_AUTH_SECRET \|\| JWT_SECRET`. Set `BETTER_AUTH_SECRET` instead for anything new; this one exists so an older deployment that only ever set `JWT_SECRET` keeps working unchanged. |
 | `DEFAULT_LOCALE` | Optional. Instance-wide fallback language (`en`, `fr`, `it`, `pl`, `de`, or `pt`) for any document or system email whose client/company/user never set one of their own — see [Document Language](./document-language.md) for the full cascade. Left unset, everything renders in English exactly as before. |
+| `PDF_RENDER_CONCURRENCY` | Optional, `4` by default. How many PDFs one process renders at once; further requests wait their turn. Up to this many Chromium pages stay open between renders so the next one starts faster, which costs memory even when idle. |
+| `SESSION_CACHE_TTL_MS` | Optional, `10000` (10 seconds) by default. How long the API keeps a signed-in session in memory instead of reading it from the database on every request. Sign-outs, company switches and membership or role changes are still seen by the very next request. `0` turns the cache off. |
 | `ADDRESS_AUTOCOMPLETE_URL` | Optional, empty by default. Turns on address suggestions (street, house number, postcode, city, country) while typing a client's or your company's address - see [Address autocomplete](#address-autocomplete) below. |
 
 Make sure port 80 is available on your host machine, or change the port mapping.

@@ -284,6 +284,10 @@ app:
   # of nginx, or raise it further if you put ANOTHER load balancer/CDN in front of the Ingress itself.
   # Getting this wrong is silent — see `trust-proxy.ts`'s own header for what breaks in each direction.
   trustProxyHops: "2"
+  # SESSION_CACHE_TTL_MS: how long an api pod keeps a signed-in session in memory instead of reading
+  # it from Postgres on every request. Every change to a session, membership or user is pushed to all
+  # api pods through Redis, so the next request sees it whatever this value. "0" turns the cache off.
+  sessionCacheTtlMs: "10000"
   # ENABLE_BETA_BANNER — OFF by default. Read only by entrypoint.sh (api role only — see that
   # script's own header), which publishes it, unparsed, into the frontend's runtime /config.json;
   # the frontend's own tolerant boolean check (isBetaBannerEnabled, frontend/src/lib/runtime-config.ts)

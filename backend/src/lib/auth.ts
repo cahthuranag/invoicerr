@@ -47,6 +47,7 @@ import { createPendingSignupStore, createRedisClientForPendingSignups } from './
 import { CLIENT_IP_HEADER } from './client-ip-header';
 import { devOnlyOrigins } from './dev-origins';
 import { normalizeSignupLocale } from '../modules/auth-extended/signup-locale';
+import { sessionCache } from './session-cache';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 
@@ -358,6 +359,10 @@ const userAfterCreateHook = async (user, context) => {
   return user;
 };
 
+// An expiry refresh only lengthens the session; a cached copy keeps the earlier expiry, so it is safe.
+const SESSION_REFRESH_FIELDS = new Set(['expiresAt', 'updatedAt']);
+const sessionUpdatesToInvalidate = new WeakSet<object>();
+
 export const auth = betterAuth({
   baseURL: process.env.APP_URL || 'http://localhost:3000',
   // Fall back to JWT_SECRET so existing deployments that only set it keep working
@@ -586,7 +591,33 @@ export const auth = betterAuth({
       // mode this hook must avoid.
       update: {
         after: async (user) => {
+          await sessionCache.invalidateUsers([user.id]);
           await syncPolarMemberEmailForUser(user.id, user.email, user.name || null);
+        },
+      },
+      delete: {
+        after: async (user) => {
+          await sessionCache.invalidateUsers([user.id]);
+        },
+      },
+    },
+    // Sign-out, revocations, password changes and expiry all reach the session row through these.
+    session: {
+      update: {
+        before: async (data, context) => {
+          if (context && Object.keys(data).some((field) => !SESSION_REFRESH_FIELDS.has(field))) {
+            sessionUpdatesToInvalidate.add(context);
+          }
+        },
+        after: async (session, context) => {
+          if (session && (!context || sessionUpdatesToInvalidate.has(context))) {
+            await sessionCache.invalidateUsers([session.userId]);
+          }
+        },
+      },
+      delete: {
+        after: async (session) => {
+          await sessionCache.invalidateUsers([session.userId]);
         },
       },
     },
@@ -657,3 +688,7 @@ export const auth = betterAuth({
     }),
   ],
 });
+
+export async function sessionCookieName(): Promise<string> {
+  return (await auth.$context).authCookies.sessionToken.name;
+}

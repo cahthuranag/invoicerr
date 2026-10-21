@@ -9,6 +9,7 @@ import { resolveUserLanguage } from '@/modules/documents/rendering/language/reso
 import { wipeAllInboundFiles } from '@/modules/documents/received-invoices/storage';
 import { generateOtpCode, hashOtpCode, otpCodeMatches } from '@/modules/documents/signatures/otp';
 import prisma from '@/prisma/prisma.service';
+import { sessionCache } from '@/lib/session-cache';
 import { CurrentUser } from '@/types/user';
 
 import {
@@ -177,6 +178,7 @@ export class InstanceResetService {
         // models. `_prisma_migrations` is never in `INSTANCE_RESET_TABLES` — see that file's own spec.
         await tx.$executeRawUnsafe(`TRUNCATE TABLE ${tableList} CASCADE;`);
       });
+      await sessionCache.invalidateAll();
 
       await Promise.all([...archiveUris].map((uri) => deleteArchivedArtifacts(uri)));
 

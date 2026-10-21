@@ -61,11 +61,11 @@ import { DocumentsService } from '../src/modules/documents/documents.service';
 import { ArticlesService } from '../src/modules/articles/articles.service';
 import { ClientsService } from '../src/modules/clients/clients.service';
 import { defaultCountryPolicyCatalog } from '../src/modules/documents/country-policy/registry';
-import { deleteInboundFilesForCompany } from '../src/modules/documents/received-invoices/storage';
-import { deleteArchivedArtifacts } from '../src/modules/documents/archive/storage';
 import { createRng } from '../src/modules/demo/generators/rng';
 import { SupportedCountryCode } from '../src/modules/demo/generators/data-pools';
 import { seedCountryCompany } from '../src/modules/demo/seed-runtime/seed-company';
+import { retireDemoCompanies } from '../src/modules/demo/seed-runtime/retire-companies';
+import { sessionCache } from '../src/lib/session-cache';
 
 const logger = new Logger('demo-reset');
 
@@ -104,29 +104,6 @@ async function ensureDemoUser(): Promise<string> {
   // one anyway, see `mail/mail.service.ts`), so it is marked verified directly, once, here.
   await prisma.user.update({ where: { id: userId }, data: { emailVerified: true } });
   return userId;
-}
-
-/** Erases the STORED FILES, never just the rows (the rows are gone the moment the old `Company` rows
- *  are deleted below, cascading every table via the schema's own FKs), an old demo company's documents
- *  left behind: uploaded/received-invoice attachments and archived, signed PDFs, the same two stores
- *  `danger.service.ts#resetCompanyData`/`instance-reset.service.ts` already erase, read here BEFORE
- *  the company row (and therefore its `DocumentArchive` rows) is deleted, for the identical reason
- *  that function journals storage objects inside its own transaction first: the archive path carries
- *  no `companyId` of its own, so nothing could name those bytes again once the row is gone. */
-async function eraseOldCompanyFiles(companyId: string): Promise<void> {
-  const archives = await prisma.documentArchive.findMany({ where: { companyId }, select: { uri: true } });
-  for (const archive of archives) {
-    try {
-      await deleteArchivedArtifacts(archive.uri);
-    } catch (error) {
-      logger.warn(`Could not erase archived artifact ${archive.uri} for company ${companyId}: ${error}`);
-    }
-  }
-  try {
-    await deleteInboundFilesForCompany(companyId);
-  } catch (error) {
-    logger.warn(`Could not erase inbound files for company ${companyId}: ${error}`);
-  }
 }
 
 async function main(): Promise<void> {
@@ -178,19 +155,15 @@ async function main(): Promise<void> {
     }
 
     // The swap: every new company exists and is fully built, only now do the old ones go.
-    for (const companyId of oldCompanyIds) {
-      await eraseOldCompanyFiles(companyId);
-    }
-    if (oldCompanyIds.length > 0) {
-      await prisma.company.deleteMany({ where: { id: { in: oldCompanyIds } } });
-      logger.log(`Deleted ${oldCompanyIds.length} old demo company(ies).`);
-    }
+    await retireDemoCompanies(userId, oldCompanyIds);
+    logger.log(`Deleted ${oldCompanyIds.length} old demo company(ies).`);
 
     logger.log(
       `demo:reset complete: ${newCompanyIds.length} compan${newCompanyIds.length === 1 ? 'y' : 'ies'} seeded.`,
     );
   } finally {
     await app.close();
+    await sessionCache.close();
   }
 }
 

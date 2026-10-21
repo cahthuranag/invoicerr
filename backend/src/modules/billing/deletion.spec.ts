@@ -15,6 +15,7 @@ vi.mock('@/prisma/prisma.service', () => ({
     webhook: { deleteMany: vi.fn() },
     company: { delete: vi.fn() },
     companySubscription: { findUnique: vi.fn() },
+    userCompany: { findMany: vi.fn() },
     // The storage-erasure journal both deletion paths now write inside their own transaction, and
     // drain right after it (`documents/archive/company-storage-erasure.ts`). Stubbed empty here: this
     // spec is about the Polar/FK/stale-read disciplines, and the erasure itself is proven against real
@@ -40,6 +41,7 @@ function resetStorageErasureMocks() {
   (prisma.documentArchive.findMany as Mock).mockResolvedValue([]);
   (prisma.pendingStorageErasure.createMany as Mock).mockResolvedValue({ count: 0 });
   (prisma.pendingStorageErasure.findMany as Mock).mockResolvedValue([]);
+  (prisma.userCompany.findMany as Mock).mockResolvedValue([]);
 }
 
 const NOW = new Date('2026-09-17T00:00:00.000Z');

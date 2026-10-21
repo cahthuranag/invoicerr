@@ -55,6 +55,8 @@
  * leave behind.
  */
 import prisma from '@/prisma/prisma.service';
+import { sessionCache } from '@/lib/session-cache';
+import { companyMemberIds } from '@/modules/companies/company-member-ids';
 
 import {
   drainStorageErasureJournal,
@@ -149,7 +151,7 @@ export async function deleteCompanyPermanently(
     }
   }
 
-  const deleted = await prisma.$transaction(async (tx) => {
+  const members = await prisma.$transaction(async (tx) => {
     // Re-read INSIDE the same transaction as the delete itself, right before it: the Polar revoke
     // above is a real network round-trip, exactly the kind of window a webhook can land in between
     // the check above and this point. A row that moved on in that window must abort here, the DB
@@ -159,21 +161,24 @@ export async function deleteCompanyPermanently(
       where: { companyId },
       select: { status: true, deletionDueAt: true },
     });
-    if (!isStillDueForDeletion(fresh, now)) return false;
+    if (!isStillDueForDeletion(fresh, now)) return null;
 
     // AFTER the guard above, never before it: a journal naming a company this transaction turns
     // around and does NOT delete would send the drain below after a LIVE company's own archives.
     await journalCompanyStorageObjects(tx, companyId);
     await tx.webhook.deleteMany({ where: { companyId } });
+    const memberIds = await companyMemberIds(tx, companyId);
     await tx.company.delete({ where: { id: companyId } });
-    return true;
+    return memberIds;
   });
 
   // Only once the rows are really gone, and never inside the transaction: object storage has no
   // rollback, so bytes deleted under a transaction that later aborts are simply lost. Never throws —
   // whatever it could not erase stays in the journal for an operator (see its own header).
-  if (deleted) await drainStorageErasureJournal({ companyId, now });
-  return deleted;
+  if (!members) return false;
+  await sessionCache.invalidateUsers(members);
+  await drainStorageErasureJournal({ companyId, now });
+  return true;
 }
 
 /**
@@ -209,15 +214,18 @@ export async function deleteCompanyPermanentlyNow(
     }
   }
 
-  await prisma.$transaction(async (tx) => {
+  const members = await prisma.$transaction(async (tx) => {
     // The inventory of this company's stored bytes, taken in the same commit that removes the rows
     // pointing at them, see this file's own header, and `company-storage-erasure.ts`'s, for why the
     // order is inventory → rows → objects and not any of the two obvious alternatives.
     await journalCompanyStorageObjects(tx, companyId);
     await tx.webhook.deleteMany({ where: { companyId } });
+    const memberIds = await companyMemberIds(tx, companyId);
     await tx.company.delete({ where: { id: companyId } });
+    return memberIds;
   });
 
+  await sessionCache.invalidateUsers(members);
   // Post-commit, best effort, never throwing: this function's callers report "nothing was deleted"
   // when it throws (`danger.service.ts#deleteCompany`), and by this point that would be a lie.
   await drainStorageErasureJournal({ companyId });

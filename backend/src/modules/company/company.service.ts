@@ -51,6 +51,8 @@ import { withSeatReservation } from '@/modules/billing/seat-sync';
 import { syncCompanyMemberOnMembershipChange } from '@/modules/billing/member-sync';
 import { syncPolarCustomerOnCompanyChange } from '@/modules/billing/customer-sync';
 import prisma from '@/prisma/prisma.service';
+import { sessionCache } from '@/lib/session-cache';
+import { companyMemberIds } from '@/modules/companies/company-member-ids';
 import { loadPaymentTerms } from '@/modules/company/payment-terms/load-payment-terms';
 
 /**
@@ -339,6 +341,9 @@ export class CompanyService {
       where: { id: companyId },
       data: pickCompanyInput(rest),
     });
+    if (existingCompany.name !== updatedCompany.name) {
+      await sessionCache.invalidateUsers(await companyMemberIds(prisma, companyId));
+    }
 
     await this.upsertPartyIdentifiers(
       companyId,
@@ -713,6 +718,7 @@ export class CompanyService {
     await withSeatReservation(newCompany.id, userId, (tx) =>
       tx.userCompany.create({ data: { userId, companyId: newCompany.id, role: 'OWNER' } }),
     );
+    await sessionCache.invalidateUsers([userId]);
     // Practically always a no-op here (a brand-new company has no `polarSubscriptionId` yet), kept
     // for the rare case a company row is created for one already billed elsewhere — see
     // `billing/member-sync.ts`'s own header.
