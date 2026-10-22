@@ -2,6 +2,7 @@ import { vi, type Mock } from 'vitest';
 
 import prisma from '@/prisma/prisma.service';
 
+import { fetchAllRatesTodayRates, readAllRatesTodayApiKey } from './allratestoday-rates-client';
 import { CurrencyRateSweepRunner } from './currency-rate-sweep-runner';
 import { fetchEcbDailyRates } from './ecb-rates-client';
 import { fetchOpenErApiRates } from './open-er-api-rates-client';
@@ -34,6 +35,9 @@ vi.mock('@/prisma/prisma.service', () => ({
 
 vi.mock('./ecb-rates-client');
 vi.mock('./open-er-api-rates-client');
+// Auto-mocked: `readAllRatesTodayApiKey` returns `undefined` unless a test says otherwise, so every
+// test below that does not opt in exercises the default open.er-api.com fallback, unchanged.
+vi.mock('./allratestoday-rates-client');
 
 const findMany = prisma.currencyRate.findMany as Mock;
 const createMany = prisma.currencyRate.createMany as Mock;
@@ -43,6 +47,8 @@ const documentPaymentGroupBy = prisma.documentPayment.groupBy as Mock;
 const queryRaw = prisma.$queryRaw as unknown as Mock;
 const fetchEcb = fetchEcbDailyRates as Mock;
 const fetchOpenErApi = fetchOpenErApiRates as Mock;
+const fetchAllRatesToday = fetchAllRatesTodayRates as Mock;
+const readAllRatesTodayKey = readAllRatesTodayApiKey as Mock;
 
 describe('CurrencyRateSweepRunner.runSweep', () => {
   // Scope (b) (#574) defaults to "nothing used, no company has a reference currency" for every test
@@ -137,6 +143,34 @@ describe('CurrencyRateSweepRunner.runSweep', () => {
           // NEVER 'ecb' — this row was resolved through the fallback, and a reader must be able to
           // tell the two apart (definition-of-done item 1).
           source: 'exchangerate-api',
+        },
+      ],
+    });
+  });
+
+  it('uses AllRatesToday for the fallback instead, under its OWN source, only when ALLRATESTODAY_API_KEY is set', async () => {
+    readAllRatesTodayKey.mockReturnValue('test-key');
+    fetchEcb.mockResolvedValue({ referenceDate: '2026-09-11', rates: new Map([['USD', 1.0812]]) }); // no MAD
+    fetchAllRatesToday.mockResolvedValue({ rates: new Map([['MAD', 10.9]]) });
+    findMany
+      .mockResolvedValueOnce([{ companyId: 'company-1', from: 'EUR', to: 'MAD' }])
+      .mockResolvedValueOnce([]);
+
+    const runner = new CurrencyRateSweepRunner();
+    const result = await runner.runSweep();
+
+    expect(result).toEqual({ ok: true, companiesProcessed: 1, inserted: 1, skipped: 0 });
+    expect(fetchAllRatesToday).toHaveBeenCalledWith('test-key');
+    expect(fetchOpenErApi).not.toHaveBeenCalled();
+    expect(createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          companyId: 'company-1',
+          from: 'EUR',
+          to: 'MAD',
+          rate: '10.9',
+          asOf: new Date('2026-09-11T00:00:00.000Z'),
+          source: 'allratestoday',
         },
       ],
     });

@@ -57,7 +57,9 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import prisma from '@/prisma/prisma.service';
 
+import { fetchAllRatesTodayRates, readAllRatesTodayApiKey } from './allratestoday-rates-client';
 import {
+  ALLRATESTODAY_SOURCE,
   AUTOMATIC_RATE_SOURCES,
   CompanyPaymentDocumentCurrencyPair,
   CompanyReferenceCurrency,
@@ -290,15 +292,26 @@ export class CurrencyRateSweepRunner {
     // Lazily fetched, at most ONCE per pass — see this class's own header ("fired lazily") for why: a
     // company whose active pairs are all ECB-covered never triggers this call at all.
     let fallbackRates: Map<string, number> | null | undefined; // undefined = not attempted yet
+    // Opt-in only: with `ALLRATESTODAY_API_KEY` set, the fallback leg asks AllRatesToday instead of
+    // open.er-api.com (allratestoday-rates-client.ts). Unset — the default — nothing changes. Never
+    // under `CURRENCY_RATE_FAKE=1`, so CI keeps its network-free fake whatever the env carries.
+    const allRatesTodayApiKey = currencyRateFakeEnabled() ? undefined : readAllRatesTodayApiKey();
+    const fallbackSource = allRatesTodayApiKey ? ALLRATESTODAY_SOURCE : EXCHANGERATE_API_SOURCE;
+    const fallbackLabel = allRatesTodayApiKey ? 'AllRatesToday' : 'open.er-api.com';
     const getFallbackRates = async (): Promise<Map<string, number> | null> => {
       if (fallbackRates !== undefined) return fallbackRates;
       try {
-        fallbackRates = (currencyRateFakeEnabled() ? fakeFetchOpenErApiRates() : await fetchOpenErApiRates())
-          .rates;
+        if (currencyRateFakeEnabled()) {
+          fallbackRates = fakeFetchOpenErApiRates().rates;
+        } else if (allRatesTodayApiKey) {
+          fallbackRates = (await fetchAllRatesTodayRates(allRatesTodayApiKey)).rates;
+        } else {
+          fallbackRates = (await fetchOpenErApiRates()).rates;
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.warn(
-          `Currency-rate sweep could not fetch the open.er-api.com fallback feed — pairs the ECB ` +
+          `Currency-rate sweep could not fetch the ${fallbackLabel} fallback feed — pairs the ECB ` +
             `doesn't cover stay unresolved this pass: ${message}`,
         );
         fallbackRates = null;
@@ -351,7 +364,7 @@ export class CurrencyRateSweepRunner {
         const fallback = await getFallbackRates();
         if (fallback) {
           rate = computeCrossRate(pair.from, pair.to, fallback);
-          source = EXCHANGERATE_API_SOURCE;
+          source = fallbackSource;
         }
       }
 
@@ -360,7 +373,7 @@ export class CurrencyRateSweepRunner {
         continue;
       }
 
-      if (source === EXCHANGERATE_API_SOURCE) viaFallback++;
+      if (source === fallbackSource) viaFallback++;
 
       rowsToInsert.push({
         companyId: pair.companyId,
@@ -378,7 +391,7 @@ export class CurrencyRateSweepRunner {
 
     this.logger.log(
       `Currency-rate sweep (asOf ${referenceDate}): ${companiesProcessed} compan${companiesProcessed === 1 ? 'y' : 'ies'}, ` +
-        `${rowsToInsert.length} row(s) inserted (${viaFallback} via the open.er-api.com fallback), ` +
+        `${rowsToInsert.length} row(s) inserted (${viaFallback} via the ${fallbackLabel} fallback), ` +
         `${skipped} pair(s) skipped.`,
     );
 

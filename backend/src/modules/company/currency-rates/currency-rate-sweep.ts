@@ -34,13 +34,22 @@ export const ECB_SOURCE = 'ecb';
  *  `'unverified'` — and it matters more here because the number ends up on a legal document. */
 export const EXCHANGERATE_API_SOURCE = 'exchangerate-api';
 
+/** The `CurrencyRate.source` value for a fallback row resolved through AllRatesToday
+ *  (`allratestoday-rates-client.ts`) instead — only ever written when the operator opted in with
+ *  `ALLRATESTODAY_API_KEY`. Its own value for the same provenance reason as `EXCHANGERATE_API_SOURCE`. */
+export const ALLRATESTODAY_SOURCE = 'allratestoday';
+
 /** Every `CurrencyRate.source` value this sweep can write AUTOMATICALLY (`'manual'`, the only other
  *  value in use, is deliberately excluded). Two consumers share this set: the runner's own
  *  idempotency check (a pair already refreshed today by EITHER source needs no second attempt) and
  *  `convert.ts#findPairsWithoutAutomaticRate` (a pair with zero rows carrying one of these sources
  *  has provably been tried and failed by BOTH — currency-rates.store.ts's own
  *  `listCurrencyRatePairsWithoutAutomaticRate`, surfaced by the settings screen). */
-export const AUTOMATIC_RATE_SOURCES: ReadonlySet<string> = new Set([ECB_SOURCE, EXCHANGERATE_API_SOURCE]);
+export const AUTOMATIC_RATE_SOURCES: ReadonlySet<string> = new Set([
+  ECB_SOURCE,
+  EXCHANGERATE_API_SOURCE,
+  ALLRATESTODAY_SOURCE,
+]);
 
 /** Default 24h (`86_400_000`ms) — the ECB publishes once a business day, around 16:00 CET, so
  *  sweeping more often than that would only ever re-observe the SAME reference date (a no-op,
