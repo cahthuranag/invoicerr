@@ -15,8 +15,7 @@
  */
 
 export const ALLRATESTODAY_BASE_CURRENCY = 'EUR';
-export const ALLRATESTODAY_RATES_URL =
-  `https://allratestoday.com/api/v1/rates?source=${ALLRATESTODAY_BASE_CURRENCY}`;
+export const ALLRATESTODAY_RATES_URL = `https://allratestoday.com/api/v1/rates?source=${ALLRATESTODAY_BASE_CURRENCY}`;
 
 /** Same bound and same reasoning as `ecb-rates-client.ts#FETCH_TIMEOUT_MS`: this runs on the BullMQ
  *  worker thread, so a hang must not block the sweep. */
